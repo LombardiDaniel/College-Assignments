@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <semaphore.h>
 
+#include "queue.h"
+
 
 #define N_BARBERS                                 3
 #define N_SOFA_SEATS                              4

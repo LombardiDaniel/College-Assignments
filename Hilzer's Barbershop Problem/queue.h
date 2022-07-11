@@ -5,19 +5,21 @@
 
 typedef int Tipo;
 
+
 typedef struct QNode_ {
     Tipo data;
     struct QNode_ *next;
 } QNode;
 
-typedef struct {
+typedef struct Queue_ {
     QNode *front;
     QNode *rear;
 } Queue;
 
+
 void enqueue(Queue *queue, Tipo value);
 Tipo dequeue(Queue *queue);
-int isEmpty(Queue *queue);
+inline int isEmpty(Queue *queue);
 
 
 void enqueue(Queue *queue, Tipo value) {
@@ -66,7 +68,7 @@ Tipo dequeue(Queue *queue) {
    return tmpData;
 }
 
-int isEmpty(Queue *queue) {
+inline int isEmpty(Queue *queue) {
     if (queue->front == NULL)
         return 1;
 
