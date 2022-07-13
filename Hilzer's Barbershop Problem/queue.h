@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 
-typedef int Tipo;
+typedef unsigned Tipo;
 
 
 typedef struct QNode_ {

@@ -27,6 +27,8 @@
 #define N_SOFA_SEATS                                        4
 #define N_MAX_CUSTOMERS                                    20
 #define N_COUNT                                            88
+#define N_MAX_EM_PE (N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS)
+#define CADEIRA_OCUPADA                                    -1
 
 
 #define SIM_PERIOD                                          1
@@ -39,7 +41,7 @@ typedef struct {
 } queue;
 
 
-void *custumerRoutine(void *args); // args[0] is client_id
+void *customerRoutine(void *args); // args[0] is client_id
 void *barberRoutine(void *args); // args[0] is client_id
 
 // Fluxo do cliente
@@ -84,6 +86,8 @@ Queue qEmPe;
 pthread_mutex_t mutexEmPe;
 
 
+int cadeirasBarbeiros[3] = {-1};
+
 
 int main() {
     pthread_t thBarbers[N_BARBERS];
@@ -125,14 +129,29 @@ void *barberRoutine(void *args) {
 }
 
 
-void *custumerRoutine(void *args) {
+void *customerRoutine(void *args) {
     // unsigned long custID = *(unsigned long *) args;
     long custID = *(long *) args;
 
+    // checa vagas de pé
     pthread_mutex_lock(&mutexEmPe);
-    if (qEmPe.count < N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS) {
+    if (qEmPe.count >= N_MAX_EM_PE) {
         pthread_mutex_unlock(&mutexEmPe);
+        pthread_exit(NULL);
     }
+
+    enqueue(&qEmPe, custID);
+    pthread_mutex_unlock(&mutexEmPe);
+
+
+    // chega vagas sentados
+    sem_wait(&sofaSemaphore);
+    dequeue(&qEmPe);
+    enqueue(&qSofa, custID);
+
+
+    // chega vagas do barberiro
+
 
 }
 
