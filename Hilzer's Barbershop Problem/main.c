@@ -150,8 +150,8 @@ void *customerRoutine(void *args) {
     enqueue(&qSofa, custID);
 
 
-    // chega vagas do barberiro
-
+    // chega vagas do barberiro -> precisa criar estrutura das cadeiras (lista[3] = id ? id : -1)
+    sem_wait(&barberChairSemaphore);
 
 }
 
