@@ -14,12 +14,15 @@ typedef struct QNode_ {
 typedef struct Queue_ {
     QNode *front;
     QNode *rear;
+
+    unsigned count;
 } Queue;
 
 
 void enqueue(Queue *queue, Tipo value);
 Tipo dequeue(Queue *queue);
 inline int isEmpty(Queue *queue);
+void queueInit(Queue *queue);
 
 
 void enqueue(Queue *queue, Tipo value) {
@@ -31,7 +34,7 @@ void enqueue(Queue *queue, Tipo value) {
 
     // if it is the first node
     if (queue->front == NULL && queue->rear == NULL) {
-        //make both front and rear points to the new node
+        // make both front and rear points to the new node
         queue->front = newNode;
         queue->rear = newNode;
     } else {
@@ -41,6 +44,15 @@ void enqueue(Queue *queue, Tipo value) {
         //make the new node as the rear node
         queue->rear = newNode;
     }
+
+    queue->count++;
+}
+
+
+void queueInit(Queue *queue) {
+    queue->count = 0;
+    queue->front = NULL;
+    queue->rear = NULL;
 }
 
 
@@ -65,6 +77,8 @@ Tipo dequeue(Queue *queue) {
    // free the first node
    Tipo tmpData = tmp->data;
    free(tmp);
+
+   queue->count--;
    return tmpData;
 }
 
