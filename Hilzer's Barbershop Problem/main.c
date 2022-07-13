@@ -38,20 +38,6 @@ typedef struct {
     sem_t follower;
 } queue;
 
-// Shared
-short customerCount = 0;
-// fifo *sofa, *emPe;
-
-// Control
-sem_t barberChairSemaphore; // start value @ 3
-sem_t sofaSemaphore; // start value @ 4
-sem_t shopSemaphore; // start value @ 20
-
-sem_t cashSemaphore; // start value @ 0
-sem_t receiptSemaphore; // start value @ 0
-
-pthread_mutex_t barberCashRegisterMutex;
-
 
 void *custumerRoutine(void *args); // args[0] is client_id
 void *barberRoutine(void *args); // args[0] is client_id
@@ -74,11 +60,39 @@ void _sleep(unsigned seconds);
 void printCliente(char *str, unsigned id);
 
 
+// Shared
+short customerCount = 0;
+
+// Control
+sem_t barberChairSemaphore; // start value @ 3
+sem_t sofaSemaphore; // start value @ 4
+sem_t shopSemaphore; // start value @ 20
+
+sem_t cashSemaphore; // start value @ 0
+sem_t receiptSemaphore; // start value @ 0
+
+pthread_mutex_t barberCashRegisterMutex;
+
+
+Queue qRegistradora;
+pthread_mutex_t mutexRegistradora;
+
+Queue qSofa;
+pthread_mutex_t mutexSofa;
+
+Queue qEmPe;
+pthread_mutex_t mutexEmPe;
+
+
+
 int main() {
     pthread_t thBarbers[N_BARBERS];
     pthread_t thCustomers[N_MAX_CUSTOMERS];
 
     pthread_mutex_init(&barberCashRegisterMutex, NULL);
+    pthread_mutex_init(&mutexRegistradora, NULL);
+    pthread_mutex_init(&mutexSofa, NULL);
+    pthread_mutex_init(&mutexEmPe, NULL);
     sem_init(&barberChairSemaphore, 0, N_BARBERS);
     sem_init(&sofaSemaphore, 0, N_SOFA_SEATS);
     sem_init(&shopSemaphore, 0, N_MAX_CUSTOMERS);
@@ -97,14 +111,6 @@ int main() {
 
     // pthread_join(t2, NULL);
 
-    Queue qRegistradora;
-    Queue qSofa;
-    Queue qEmPe;
-
-    printCliente("entrou na loja", 5);
-    printCliente("entrou na loja", 6);
-
-
 
     return 0;
 }
@@ -117,6 +123,19 @@ void *barberRoutine(void *args) {
 
 
 }
+
+
+void *custumerRoutine(void *args) {
+    // unsigned long custID = *(unsigned long *) args;
+    long custID = *(long *) args;
+
+    pthread_mutex_lock(&mutexEmPe);
+    if (qEmPe.count < N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS) {
+        pthread_mutex_unlock(&mutexEmPe);
+    }
+
+}
+
 
 
 // Fluxo do cliente
