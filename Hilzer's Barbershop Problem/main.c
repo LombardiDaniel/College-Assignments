@@ -92,11 +92,11 @@ pthread_mutex_t mutexEmPe;
 int main(int argc, char *argv[]) {
 
     CLIENT_AMMOUNT = atoi(argv[argc-1]);
-    printf("%ld\n", CLIENT_AMMOUNT);
 
     pthread_t thBarbers[N_BARBERS];
     pthread_t thCustomers[N_MAX_CUSTOMERS];
     long *customerId = (long *) malloc(sizeof(unsigned long) * CLIENT_AMMOUNT);
+    short barberId[N_BARBERS];
 
     pthread_mutex_init(&barberCashRegisterMutex, NULL);
     pthread_mutex_init(&mutexRegistradora, NULL);
@@ -112,11 +112,11 @@ int main(int argc, char *argv[]) {
 
     sem_init(&barberSemaphore, 0, 0);
     sem_init(&customerSemaphore, 0, 0);
-    // unsigned long barberId[3] = {0};
+
 
     for (size_t i = 0; i < N_BARBERS; i++) {
-        // barberId[i] = i;
-        pthread_create(&thBarbers[i], NULL, barberRoutine, &customerId[i]);
+        barberId[i] = i;
+        pthread_create(&thBarbers[i], NULL, barberRoutine, &barberId[i]);
     }
 
     for (size_t i = 0; i < CLIENT_AMMOUNT; i++) {
@@ -148,15 +148,16 @@ int main(int argc, char *argv[]) {
 
     sem_destroy(&barberSemaphore);
     sem_destroy(&customerSemaphore);
+
     return 0;
 }
 
 
 void *barberRoutine(void *args) {
 
-    long barberID = *(long *) args;
+    short barberID = *(short *) args;
 
-    printf("[INFO]::Inicializando rotina do barbeiro %ld\n", barberID);
+    printf("[INFO]::Inicializando rotina do barbeiro %d\n", barberID);
 
     while (1) {
     // for (size_t i = 0; i < CLIENT_AMMOUNT; i++) {
@@ -182,13 +183,13 @@ void *barberRoutine(void *args) {
 void *customerRoutine(void *args) {
     // unsigned long custID = *(unsigned long *) args;
     long custID = *(long *) args;
-    printf("Inicializando rotina do cliente %ld\n", custID);
+    // printf("Inicializando rotina do cliente %ld\n", custID);
 
     // checa vagas de pé
     pthread_mutex_lock(&mutexEmPe);
     // printf("A fila em pe possui %d pessoas\n", qEmPe.count);
     if (qEmPe.count >= N_MAX_EM_PE) {
-        printf("Numero maximo de clientes excedido!\n");
+        printf("[INFO]::Numero maximo de clientes excedido!\n");
         pthread_mutex_unlock(&mutexEmPe);
         pthread_exit(NULL);
     }
@@ -255,7 +256,7 @@ void pagar(unsigned id) {
 
 // Fluxo do barbeiro
 void cortarCabelo(unsigned id) {
-    _sleep(0);
+    _sleep(2);
     printBarbeiro("Cortou o cabelo de um cliente.", id);
 }
 
@@ -272,9 +273,8 @@ void _sleep(unsigned seconds_avg) {
 }
 
 void printCliente(char *str, unsigned id) {
-    char COLORS[7][8] = {
-        BLACK,
-        RED,
+    char COLORS[5][8] = {
+        // BLACK,
         GREEN,
         YELLOW,
         BLUE,
@@ -282,7 +282,7 @@ void printCliente(char *str, unsigned id) {
         CYAN
     };
 
-    unsigned c = id % 7;
+    unsigned c = id % 5;
     printf("[%sCLIENTE::%u%s] %s\n", &COLORS[c][0], id, RESET, str);
 }
 
