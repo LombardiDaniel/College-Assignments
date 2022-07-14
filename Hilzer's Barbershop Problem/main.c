@@ -26,7 +26,7 @@
 #define N_BARBERS                                           3
 #define N_SOFA_SEATS                                        4
 #define N_MAX_CUSTOMERS                                    20
-#define N_COUNT                                            88
+#define N_COUNT                                             6
 #define N_MAX_EM_PE (N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS)
 #define CADEIRA_OCUPADA                                    -1
 
@@ -47,7 +47,7 @@ void *barberRoutine(void *args); // args[0] is client_id
 // Fluxo do cliente
 void entrarNaLoja(unsigned id);
 void sentarNoSofa(unsigned id);
-void cortarCabelo(unsigned id);
+void recebendoCorteCabelo(unsigned id);
 void sentarCadeiraBarbeiro(unsigned id);
 void pagar(unsigned id);
 
@@ -73,8 +73,10 @@ sem_t shopSemaphore; // start value @ 20
 sem_t cashSemaphore; // start value @ 0
 sem_t receiptSemaphore; // start value @ 0
 
-pthread_mutex_t barberCashRegisterMutex;
+sem_t barberSemaphore; // start value @ 0
+sem_t customerSemaphore; // start value @ 0
 
+pthread_mutex_t barberCashRegisterMutex;
 
 Queue qRegistradora;
 pthread_mutex_t mutexRegistradora;
@@ -92,6 +94,7 @@ int cadeirasBarbeiros[3] = {-1};
 int main() {
     pthread_t thBarbers[N_BARBERS];
     pthread_t thCustomers[N_MAX_CUSTOMERS];
+    int i;
 
     pthread_mutex_init(&barberCashRegisterMutex, NULL);
     pthread_mutex_init(&mutexRegistradora, NULL);
@@ -105,6 +108,27 @@ int main() {
     sem_init(&cashSemaphore, 0, 0);
     sem_init(&receiptSemaphore, 0, 0);
 
+    sem_init(&barberSemaphore, 0, 0);
+    sem_init(&customerSemaphore, 0, 0);
+
+    unsigned long customerId[6] = {0};
+
+    for (i=0; i<N_COUNT; i++) {
+        customerId[i] = i;
+        pthread_create(&thCustomers[i], NULL, customerRoutine, &customerId[i]);
+    }
+
+    for (i=0; i<N_BARBERS; i++) {
+        pthread_create(&thBarbers[i], NULL, barberRoutine, &customerId[i]);
+    }
+
+    printf("Thread creation successful\n");
+
+    for (i=0; i<N_COUNT; i++) {
+        pthread_join(customerId[i], NULL);
+    }
+
+    printf("Thread joining successful\n");
 
     // unsigned long customerId[88] = {0};
     //
@@ -123,8 +147,21 @@ int main() {
 void *barberRoutine(void *args) {
     // unsigned long custID = *(unsigned long *) args;
     long custID = *(long *) args;
+    int i = 0;
+    for(i=0; i<N_COUNT; i++) {
+        // Realiza corte de cabelo do cliente
+        sem_wait(&customerSemaphore);
+        sem_post(&barberSemaphore);
+        cortarCabelo(custID);
 
+        // Espera o cliente pagar e emite recibo
+        sem_wait(&cashSemaphore);
+        sem_post(&receiptSemaphore);
+        emitirRecibo(custID);
 
+        // Sinaliza o semaforo da cadeira (chair)
+        sem_post(&barberChairSemaphore);
+    }
 
 }
 
@@ -144,15 +181,31 @@ void *customerRoutine(void *args) {
     pthread_mutex_unlock(&mutexEmPe);
 
 
-    // chega vagas sentados
+    // checa vagas sentados
     sem_wait(&sofaSemaphore);
     dequeue(&qEmPe);
     enqueue(&qSofa, custID);
 
 
-    // chega vagas do barberiro -> precisa criar estrutura das cadeiras (lista[3] = id ? id : -1)
+    // checa vagas do barberiro
     sem_wait(&barberChairSemaphore);
+    dequeue(&qSofa);
+    sentarCadeiraBarbeiro(custID);
 
+    // espera por barbeiro
+    sem_post(&customerSemaphore);
+    sem_wait(&barberSemaphore);
+    recebendoCorteCabelo(custID);
+
+    // realiza pagamento
+    sem_post(&cashSemaphore);
+    sem_wait(&receiptSemaphore);
+    pagar(custID);
+
+    // sai da loja
+    // pthread_mutex_lock(&mutexRegistradora);
+
+    // pthread_mutex_unlock(&mutexRegistradora);
 }
 
 
@@ -168,9 +221,9 @@ void sentarNoSofa(unsigned id) {
     printf("[%sCLIENTE%s]O cliente %u sentou no sofa.\n", GREEN, WHITE, id);
 }
 
-void cortarCabelo(unsigned id) {
+void recebendoCorteCabelo(unsigned id) {
     _sleep(rand() % 5);
-    printf("[%sCLIENTE%s]O cliente %u cortou o cabelo.\n", GREEN, WHITE, id);
+    printf("[%sCLIENTE%s]O cliente %u recebeu o corte de cabelo.\n", GREEN, WHITE, id);
 }
 
 void sentarCadeiraBarbeiro(unsigned id) {
@@ -178,12 +231,22 @@ void sentarCadeiraBarbeiro(unsigned id) {
     printf("[%sCLIENTE%s]O cliente %u sentou na cadeira do barberiro.\n", GREEN, WHITE, id);
 }
 
-void pagar(unsigned id);
+void pagar(unsigned id) {
+    _sleep(0);
+    printf("[%sCLIENTE%s]O cliente %u pagou.\n", GREEN, WHITE, id);
+}
 
 
 // Fluxo do barberiro
-void cortarCabelo(unsigned id);
-void emitirRecibo(unsigned id);
+void cortarCabelo(unsigned id) {
+    _sleep(0);
+    printf("[%sBARBEIRO%s]O barbeiro cortou o cabelo do cliente %u.\n", GREEN, WHITE, id);
+}
+
+void emitirRecibo(unsigned id) {
+    _sleep(0);
+    printf("[%sBARBEIRO%s]O barbeiro emitiu o recibo do cliente %u.\n", GREEN, WHITE, id);
+}
 
 // Abstrações
 void _sleep(unsigned seconds) {
