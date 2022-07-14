@@ -11,34 +11,33 @@
 #include "queue.h"
 
 
-#define BLACK                                      "\e[0;30m"
-#define RED                                        "\e[0;31m"
-#define GREEN                                      "\e[0;32m"
-#define YELLOW                                     "\e[0;33m"
-#define BLUE                                       "\e[0;34m"
-#define MAGENTA                                    "\e[0;35m"
-#define CYAN                                       "\e[0;36m"
-#define WHITE                                      "\e[0;37m"
-#define RESET                                      "\001b[0m"
-#define BOLD                                       "\033[;1m"
+#define BLACK                                             "\e[0;30m"
+#define RED                                               "\e[0;31m"
+#define GREEN                                             "\e[0;32m"
+#define YELLOW                                            "\e[0;33m"
+#define BLUE                                              "\e[0;34m"
+#define MAGENTA                                           "\e[0;35m"
+#define CYAN                                              "\e[0;36m"
+#define WHITE                                             "\e[0;37m"
+#define RESET                                             "\001b[0m"
+#define BOLD                                              "\033[;1m"
 
 
-#define N_BARBERS                                           3
-#define N_SOFA_SEATS                                        4
-#define N_MAX_CUSTOMERS                                    20
-#define N_COUNT                                             6
-#define N_MAX_EM_PE (N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS)
-#define CADEIRA_OCUPADA                                    -1
+#define N_BARBERS                                                  3
+#define N_SOFA_SEATS                                               4
+#define N_MAX_CUSTOMERS                                           20
+#define N_COUNT                                                    6
+#define N_MAX_EM_PE     (N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS)
+#define CADEIRA_OCUPADA                                           -1
 
+#define SIM_PERIOD                                                 1
 
-#define SIM_PERIOD                                          1
-
-
-// Structs
-typedef struct {
-    sem_t leader;
-    sem_t follower;
-} queue;
+// typedef struct Queue_ {
+//     QNode *front;
+//     QNode *rear;
+//
+//     unsigned count;
+// } Queue;
 
 
 void *customerRoutine(void *args); // args[0] is client_id
@@ -58,7 +57,7 @@ void emitirRecibo(unsigned id);
 
 
 // Abstrações:
-void _sleep(unsigned seconds);
+void _sleep(unsigned seconds_avg);
 void printCliente(char *str, unsigned id);
 
 
@@ -89,12 +88,67 @@ pthread_mutex_t mutexEmPe;
 
 // int cadeirasBarbeiros[3] = {-1};
 
+// Fluxo Principal (Thread creation)
+int main(int argc, char const *argv[]) {
+
+    pthread_t thBarbers[N_BARBERS];
+    pthread_t thCustomers[N_MAX_CUSTOMERS];
+
+    pthread_mutex_init(&barberCashRegisterMutex, NULL);
+    pthread_mutex_init(&mutexRegistradora, NULL);
+    pthread_mutex_init(&mutexSofa, NULL);
+    pthread_mutex_init(&mutexEmPe, NULL);
+    sem_init(&barberChairSemaphore, 0, N_BARBERS);
+    sem_init(&sofaSemaphore, 0, N_SOFA_SEATS);
+    sem_init(&shopSemaphore, 0, N_MAX_CUSTOMERS);
+
+    // começa em zero pq é transação (cliente_cabelo_cortado x barbeiro)
+    sem_init(&cashSemaphore, 0, 0);
+    sem_init(&receiptSemaphore, 0, 0);
+
+    sem_init(&barberSemaphore, 0, 0);
+    sem_init(&customerSemaphore, 0, 0);
+
+    unsigned long customerId[6] = {0};
+    // unsigned long barberId[3] = {0};
+
+    for (size_t i = 0; i < N_COUNT; i++) {
+        customerId[i] = i;
+        pthread_create(&thCustomers[i], NULL, customerRoutine, &customerId[i]);
+    }
+
+    for (size_t i = 0; i < N_BARBERS; i++) {
+        // barberId[i] = i;
+        pthread_create(&thBarbers[i], NULL, barberRoutine, &customerId[i]);
+    }
+
+    printf("Thread creation successful\n");
+
+    for (size_t i = 0; i < N_COUNT; i++) {
+        pthread_join(thCustomers[i], NULL);
+    }
+
+    printf("Thread joining successful\n");
+
+    // unsigned long customerId[88] = {0};
+    //
+    // for (size_t i = 0; i < 6; i++) {
+    //     customerId[i] = i;
+    //     pthread_create(&thCustomers[i], NULL, barberRoutine, &customerId[i]);
+    // }
+
+    // pthread_join(t2, NULL);
+
+
+    return 0;
+}
+
 void *barberRoutine(void *args) {
     // unsigned long custID = *(unsigned long *) args;
     long barberID = *(long *) args;
-    printf("Inicializando rotina do barbeiro %d\n", barberID);
-    int i = 0;
-    for(i=0; i<N_COUNT; i++) {
+    printf("Inicializando rotina do barbeiro %ld\n", barberID);
+
+    for (size_t i = 0; i < N_COUNT; i++) {
         // Realiza corte de cabelo do cliente
         // printf("Esperando pelo semaforo do cliente!\n");
 
@@ -111,6 +165,7 @@ void *barberRoutine(void *args) {
         sem_post(&barberChairSemaphore);
     }
 
+    return NULL;
 }
 
 
@@ -134,7 +189,7 @@ void *customerRoutine(void *args) {
     pthread_mutex_unlock(&mutexEmPe);
 
     // checa vagas no sofa
-    printf("O cliente %d ve que o sofa possui %d pessoas\n", custID, qSofa.count);
+    printf("O cliente %ld ve que o sofa possui %d pessoas\n", custID, qSofa.count);
     sem_wait(&sofaSemaphore);
     sentarNoSofa(custID);
     dequeue(&qEmPe);
@@ -159,6 +214,7 @@ void *customerRoutine(void *args) {
     // pthread_mutex_lock(&mutexRegistradora);
     // printf("Tchau\n");
     // pthread_mutex_unlock(&mutexRegistradora);
+    return NULL;
 }
 
 
@@ -202,8 +258,9 @@ void emitirRecibo(unsigned id) {
 }
 
 // Abstrações
-void _sleep(unsigned seconds) {
-    sleep(seconds * SIM_PERIOD);
+void _sleep(unsigned seconds_avg) {
+    float tmp = seconds_avg + rand() % unsigned(seconds_avg * 1.1);
+    sleep(tmp * SIM_PERIOD);
 }
 
 void printCliente(char *str, unsigned id) {
@@ -219,59 +276,4 @@ void printCliente(char *str, unsigned id) {
 
     unsigned c = id % 7;
     printf("[%sCLIENTE::%u%s] %s\n", &COLORS[c][0], id, RESET, str);
-}
-
-// Fluxo Principal (Thread creation)
-int main() {
-    pthread_t thBarbers[N_BARBERS];
-    pthread_t thCustomers[N_MAX_CUSTOMERS];
-    int i;
-
-    pthread_mutex_init(&barberCashRegisterMutex, NULL);
-    pthread_mutex_init(&mutexRegistradora, NULL);
-    pthread_mutex_init(&mutexSofa, NULL);
-    pthread_mutex_init(&mutexEmPe, NULL);
-    sem_init(&barberChairSemaphore, 0, N_BARBERS);
-    sem_init(&sofaSemaphore, 0, N_SOFA_SEATS);
-    sem_init(&shopSemaphore, 0, N_MAX_CUSTOMERS);
-
-    // começa em zero pq é transação (cliente_cabelo_cortado x barbeiro)
-    sem_init(&cashSemaphore, 0, 0);
-    sem_init(&receiptSemaphore, 0, 0);
-
-    sem_init(&barberSemaphore, 0, 0);
-    sem_init(&customerSemaphore, 0, 0);
-
-    unsigned long customerId[6] = {0};
-    // unsigned long barberId[3] = {0};
-
-    for (i=0; i<N_COUNT; i++) {
-        customerId[i] = i;
-        pthread_create(&thCustomers[i], NULL, customerRoutine, &customerId[i]);
-    }
-
-    for (i=0; i<N_BARBERS; i++) {
-        // barberId[i] = i;
-        pthread_create(&thBarbers[i], NULL, barberRoutine, &customerId[i]);
-    }
-
-    printf("Thread creation successful\n");
-
-    for (i=0; i<N_COUNT; i++) {
-        pthread_join(thCustomers[i], NULL);
-    }
-
-    printf("Thread joining successful\n");
-
-    // unsigned long customerId[88] = {0};
-    //
-    // for (size_t i = 0; i < 6; i++) {
-    //     customerId[i] = i;
-    //     pthread_create(&thCustomers[i], NULL, barberRoutine, &customerId[i]);
-    // }
-
-    // pthread_join(t2, NULL);
-
-
-    return 0;
 }
