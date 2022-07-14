@@ -26,7 +26,7 @@
 #define N_BARBERS                                           3
 #define N_SOFA_SEATS                                        4
 #define N_MAX_CUSTOMERS                                    20
-#define N_COUNT                                             6
+#define N_COUNT                                            80
 #define N_MAX_EM_PE (N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS)
 #define CADEIRA_OCUPADA                                    -1
 
@@ -123,7 +123,7 @@ void *customerRoutine(void *args) {
     pthread_mutex_lock(&mutexEmPe);
     // printf("A fila em pe possui %d pessoas\n", qEmPe.count);
     if (qEmPe.count >= N_MAX_EM_PE) {
-        printf("Numero maximo de clientes excedido!");
+        printf("Numero maximo de clientes excedido!\n");
         pthread_mutex_unlock(&mutexEmPe);
         pthread_exit(NULL);
     }
@@ -143,6 +143,7 @@ void *customerRoutine(void *args) {
     // checa vagas do barbeiro
     sem_wait(&barberChairSemaphore);
     dequeue(&qSofa);
+    sem_post(&sofaSemaphore);
     sentarCadeiraBarbeiro(custID);
 
     // espera por barbeiro
@@ -242,7 +243,7 @@ int main() {
     sem_init(&barberSemaphore, 0, 0);
     sem_init(&customerSemaphore, 0, 0);
 
-    unsigned long customerId[6] = {0};
+    unsigned long customerId[80] = {0};
     // unsigned long barberId[3] = {0};
 
     for (i=0; i<N_COUNT; i++) {
