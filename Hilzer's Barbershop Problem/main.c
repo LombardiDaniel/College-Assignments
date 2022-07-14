@@ -52,7 +52,7 @@ void sentarCadeiraBarbeiro(unsigned id);
 void pagar(unsigned id);
 
 
-// Fluxo do barberiro
+// Fluxo do barbeiro
 void cortarCabelo(unsigned id);
 void emitirRecibo(unsigned id);
 
@@ -104,7 +104,7 @@ int main() {
     sem_init(&sofaSemaphore, 0, N_SOFA_SEATS);
     sem_init(&shopSemaphore, 0, N_MAX_CUSTOMERS);
 
-    // começa em zero pq é transação (cliente_cabelo_cortado x barberiro)
+    // começa em zero pq é transação (cliente_cabelo_cortado x barbeiro)
     sem_init(&cashSemaphore, 0, 0);
     sem_init(&receiptSemaphore, 0, 0);
 
@@ -173,21 +173,23 @@ void *customerRoutine(void *args) {
     // checa vagas de pé
     pthread_mutex_lock(&mutexEmPe);
     if (qEmPe.count >= N_MAX_EM_PE) {
+        printf("Numero maximo de clientes excedido!");
         pthread_mutex_unlock(&mutexEmPe);
         pthread_exit(NULL);
     }
 
+    // entra na loja
+    entrarNaLoja(custID);
     enqueue(&qEmPe, custID);
     pthread_mutex_unlock(&mutexEmPe);
 
-
-    // checa vagas sentados
+    // checa vagas no sofa
     sem_wait(&sofaSemaphore);
+    sentarNoSofa(custID);
     dequeue(&qEmPe);
     enqueue(&qSofa, custID);
 
-
-    // checa vagas do barberiro
+    // checa vagas do barbeiro
     sem_wait(&barberChairSemaphore);
     dequeue(&qSofa);
     sentarCadeiraBarbeiro(custID);
@@ -228,7 +230,7 @@ void recebendoCorteCabelo(unsigned id) {
 
 void sentarCadeiraBarbeiro(unsigned id) {
     _sleep(0);
-    printf("[%sCLIENTE%s]O cliente %u sentou na cadeira do barberiro.\n", GREEN, WHITE, id);
+    printf("[%sCLIENTE%s]O cliente %u sentou na cadeira do barbeiro.\n", GREEN, WHITE, id);
 }
 
 void pagar(unsigned id) {
@@ -237,7 +239,7 @@ void pagar(unsigned id) {
 }
 
 
-// Fluxo do barberiro
+// Fluxo do barbeiro
 void cortarCabelo(unsigned id) {
     _sleep(0);
     printf("[%sBARBEIRO%s]O barbeiro cortou o cabelo do cliente %u.\n", GREEN, WHITE, id);
