@@ -124,7 +124,9 @@ int main(int argc, char *argv[]) {
     }
 
     printf("[INFO]::All threads joined.\n");
-    printf("[INFO]::%ld/%ld clients did not cut their hair today. :(\n", CLIENT_AMMOUNT_GAVE_UP, CLIENT_AMMOUNT);
+
+    if (CLIENT_AMMOUNT_GAVE_UP != 0)
+        printf("[INFO]::%ld/%ld clients did not cut their hair today. :(\n", CLIENT_AMMOUNT_GAVE_UP, CLIENT_AMMOUNT);
 
 
     // destoy

@@ -58,10 +58,10 @@ void queueInit(Queue *queue) {
 
 Tipo dequeue(Queue *queue) {
     // used to freeing the first node after dequeue
-    QNode *tmp;
+    QNode *tmp = {0};
 
     if (queue->front == NULL)
-        return NULL;
+        return tmp->data;
 
     // take backup
     tmp = queue->front;

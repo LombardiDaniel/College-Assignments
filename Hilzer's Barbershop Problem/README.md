@@ -43,131 +43,173 @@ Na Figura 1.4, o processo cliente 1 termina (Cliente faz o pagamento, barbeiro e
 
 ##### Fluxo dos clientes:
 ```py
-entrarNaLoja();
-sentarNoSofa();
-cortarCabelo();
-sentarCadeiraBarbeiro();
-pagar();
+entrarNaLoja()
+sentarNoSofa()
+cortarCabelo()
+sentarCadeiraBarbeiro()
+pagar()
 ```
 
 ##### Fluxo dos barbeiros:
 ```py
-cortarCabelo();
-emitirRecibo();
+cortarCabelo()
+emitirRecibo()
 ```
 
 #### Estruturas Necessárias:
 Controle de fluxo:
 ```c
-short qntClientes;
-
+// Control
 sem_t barberChairSemaphore; // start value @ 3
 sem_t sofaSemaphore; // start value @ 4
-// sem_t shopSemaphore; // start value @ 20
+// sem_t shopSemaphore; // start value @ 20 -> not used because clients don't wait
+
 sem_t cashSemaphore; // start value @ 0
 sem_t receiptSemaphore; // start value @ 0
 
+sem_t barberReadySemaphore; // start value @ 3
+sem_t customerReadySemaphore; // start value @ 0
+
 pthread_mutex_t barberCashRegisterMutex;
 
-unsigned sofaQueue[]; // holds IDs of customers
-unsigned customerQueue[]; // holds IDs of customers
+Queue qRegistradora;
+pthread_mutex_t mutexRegistradora;
 
-// Já que o primeiro a entrar será sempre o primeiro a sentar no sofá,
-// não é necessário filas indivuais
-// sofaQueue;
-// chairQueue;
+Queue qSofa;
+pthread_mutex_t mutexSofa;
+
+Queue qEmPe;
+pthread_mutex_t mutexEmPe;
 ```
+
+### Sobre as Estruturas de Controle
+A maioria das estruturas de controle utilizadas são filas. Já que todo o probelma
+segue o comportamenteo FiFo. A única excessão é dos cortes de cabelos, que podem
+ter durações variadas e ocorrem assincronamente, portanto não faz sentido pensar
+em uma fila.
+
+Por conta de como o problema funciona, foram criadas 3 filas. Cada uma com seu devido Mutex para evitar condições de corrida nos ponteiros:
+```c
+Queue qRegistradora;
+pthread_mutex_t mutexRegistradora;
+
+Queue qSofa;
+pthread_mutex_t mutexSofa;
+
+Queue qEmPe;
+pthread_mutex_t mutexEmPe;
+```
+Ou seja, os mutex funcionam para controlar a leitura e escrita às filas. Isso
+acontece **sempre**, portanto não será representado nos pseudo-códigos a seguir.
+
 
 ### Fluxo do Cliente
 
-Inicialmente, o cliente verifica se a barbearia está cheia (20 clientes). Para isso, ele trava a execucao do programa e checa a variavel compartilhada `customers`. Caso a barbearia esteja cheia, o processo finaliza execucao. Caso contrário, ele incrementa a variavel:
-
-```c
-sem_wait(&mutex);
-
-if(customers>=20) {
-    sem_post(&mutex);
-    printf("exiting shop %d.. \n",n);
-}
-
-customers++;
+A jornada do cliente se inicia fora da barbearia, ao chegar na porta, caso existam
+mais de 20 clientes dentro da mesma, ele entra.
+```py
+if qEmPe.count >= N_MAX_EM_PE:
+    entrarNaLoja()
+    qEmPe.enqueue(custID);
 ```
 
-Ao entrar, o cliente sinaliza o semáforo e fica esperando sua vez na fila:
-```c
-entrarNaLoja();
-sem_post(&mutex);
-wait_Fifo(standingRoom,n);
+Ao entrar, o "pede passagem" ao semáforo do sofá e caso consiga, sai da fila de
+"em pé" e vai para a de "sentados no sofá".
+```py
+sem_wait(sofaSemaphore);
+
+qEmPe.dequeue()
+
+qSofa.enqueue(custID)
+sentarNoSofa()
 ```
 
-Ao entrar na sala de espera, o cliente espera sua liberação para sentar no sofá:
+Sentado no sofá, segue o mesmo procedimento, porém para sentar em uma das cadeiras
+do barbeiro. Como pode sentar em qualquer cadeira, aqui não utiliza-se uma queue.
 
-```c
-printf("Entering to standing room %d \n",n);
-wait_Fifo(sofa,n);
+```py
+sem_wait(barberChairSemaphore)
+
+qSofa.dequeue(qSofa)
+sentarCadeiraBarbeiro(custID)
+
+sem_post(sofaSemaphore)
 ```
 
-Quando senta no sofá, o cliente novamente espera sua liberação para sentar na cadeira do barbeiro e sinaliza a fila de espera do sofá que ele vai sentar:
+A ação "sentar na cadeira" sinaliza que está esperando um corte (por meio de semáforos)
+e um barbeiro disponível atende o cliente. O cliente "espera a confirmação" do barbeiro
+que irá realizar seu corte com a utilização de 2 semáforos.
 
-```c
-printf("sitting in sofa %d \n", n);
-sentarNoSofa();
-signal_Fifo(standingRoom);
-sem_wait(&chair);
-```
-
-Ao ser liberado para sentar na cadeira do barbeiro, o cliente sinaliza a fila do sofá e a fila de clientes, espera pelo barbeiro ser liberado e executa a função de cortar cabelo:
-
-```c
-printf("sit barb chair %d \n",n);
-sentarCadeiraBarbeiro();
-signal_Fifo(sofa);
-sem_post(&customer);
-sem_wait(&barber);
-printf("Get hair Cut %d\n",n);
-cortarCabelo();
+```py
+sem_wait(barberReadySemaphore)
+sem_post(customerReadySemaphore)
+recebendoCorteCabelo(custID)
 ```
 
 Em seguida, o cliente realiza o pagamento e espera pelo recibo emitido pelo barbeiro:
 
 ```c
-printf("pay %d \n", n);
-pagar();
-sem_post(&cash);
-sem_wait(&reciept);
+sem_post(cashSemaphore)
+pagar(custID)
+sem_wait(receiptSemaphore)
 ```
 
-Por fim, o cliente decrementa a variável `customers` e termina a execução da thread:
+### Fluxo do Barbeiro
 
-```c
-sem_wait(&mutex);
-customers--;
-sem_post(&mutex);
-printf("exiting shop %d \n",n);
+Ao iniciar a _thread_ do barbeiro, o barbeiro fica oscioso esperando um cliente "chamá-lo"
+(por meio dos 2 semáforos do caso anterior). Quando isso ocorre, ele corta o cabelo do cliente.
+Depois dá _post_ na cadeira que o cliente travou.
+
+```py
+sem_post(&barberReadySemaphore)
+sem_wait(&customerReadySemaphore)
+
+cortarCabelo(barberID)
+sem_post(&barberChairSemaphore)
 ```
 
-### Fluxo do Cliente
+Para a caixa-registradora, voltamos a ter uma fila. Quando um cliente vai para a
+caixa registradora, um barbeiro recebe o pagamento e emite uma nota fiscal, que
+é esperada (_awaited_) pelo cliente antes que o mesmo possa ir embora.
 
-Ao iniciar a thread cutting (thread do barbeiro), o semáforo do cliente recebe um sinal `sem_wait()` para indicar que há um cliente para cortar o cabelo e logo em seguida o barbeiro recebe o sinal liberando-o para fazer o corte.
+```py
+sem_wait(&cashSemaphore)
 
-```c
-sem_wait(&customer);
-sem_post(&barber);
-printf("\tbarber %d cutting hair\n", n);
-sleep(3);
+emitirRecibo(barberID)
+
+sem_post(&receiptSemaphore)
 ```
 
-Ao finalizar o corte, o barbeiro precisa receber o pagamento, então o semáforo de pagamento é sinalizado para que o cliente consiga pagar, porém o semáforo da cadeira ainda não é liberado para que, enquanto o barbeiro estiver esperando o pagamento, outro cliente não sente na cadeira.
+A thread do barbeiro segue em loop infinito. Ela é finalizada quando a função _main_
+finaliza sua execução.
 
-```c
-sem_wait(&cash);
-printf("\tbarber %d accepting payment\n", n);
-sleep(1);
+
+#### Função _main_
+
+A função _main_ é bem simples. Trata apenas de inicializar e destruir os semaforos
+e mutexes, e spawnar as threads.
+
+```py
+def main(CLIENT_AMMOUNT):
+    semaphores_init(semaphore_list)
+    mutexes_init(mutex_list)
+
+    # barbeiros são iniciados antes pq já estão na loja quando os clientes chegam
+    for i in range(N_BARBERS):
+        spawn_thread(barberRoutine, barberID)
+
+    for i in range(CLIENT_AMMOUNT):
+        sleep(rand() % 2)
+        spawn_thread(clientRoutine, clientID)
+
+
+    semaphores_destroy(semaphore_list)
+    mutexes_destroy(mutex_list)
 ```
 
-Por último, o barbeiro emite o recibo, assim o cliente pode ir embora da barbearia e a cadeira é liberada pelo semáforo para o próximo cliente da fila.
-
-```c
-sem_post(&reciept);
-sem_post(&chair);
+A utilização do programa segue como:
+```sh
+cd "OS-Assignments/Hilzer's Barbershop Problem"
+make
+./main.out 42 # spawna 42 clientes para aquele dia
 ```
