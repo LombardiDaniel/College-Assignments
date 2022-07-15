@@ -1,3 +1,5 @@
+// Run with: ./main.out NUMBER_OF_CLIENT_THREADS
+//
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,33 +13,26 @@
 #include "queue.h"
 
 
-#define BLACK                                      "\e[0;30m"
-#define RED                                        "\e[0;31m"
-#define GREEN                                      "\e[0;32m"
-#define YELLOW                                     "\e[0;33m"
-#define BLUE                                       "\e[0;34m"
-#define MAGENTA                                    "\e[0;35m"
-#define CYAN                                       "\e[0;36m"
-#define WHITE                                      "\e[0;37m"
-#define RESET                                       "\x1b[0m"
-#define BOLD                                       "\033[;1m"
+#define BLACK                                                "\e[0;30m"
+#define RED                                                  "\e[0;31m"
+#define GREEN                                                "\e[0;32m"
+#define YELLOW                                               "\e[0;33m"
+#define BLUE                                                 "\e[0;34m"
+#define MAGENTA                                              "\e[0;35m"
+#define CYAN                                                 "\e[0;36m"
+#define WHITE                                                "\e[0;37m"
+#define RESET                                                 "\x1b[0m"
+#define BOLD                                                 "\033[;1m"
 
 
-#define N_BARBERS                                           3
-#define N_SOFA_SEATS                                        4
-#define N_MAX_CUSTOMERS                                    20
-#define N_MAX_EM_PE (N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS)
-#define CADEIRA_OCUPADA                                    -1
+#define N_BARBERS                                                     3
+#define N_SOFA_SEATS                                                  4
+#define N_MAX_CUSTOMERS                                              20
+#define N_MAX_EM_PE        (N_MAX_CUSTOMERS - N_SOFA_SEATS - N_BARBERS)
+#define CADEIRA_OCUPADA                                              -1
 
 
-#define SIM_PERIOD                                          1
-
-
-// Structs
-typedef struct {
-    sem_t leader;
-    sem_t follower;
-} queue;
+#define SIM_PERIOD                                                    1
 
 
 void *customerRoutine(void *args); // args[0] is client_id
@@ -50,32 +45,29 @@ void recebendoCorteCabelo(unsigned id);
 void sentarCadeiraBarbeiro(unsigned id);
 void pagar(unsigned id);
 
-
 // Fluxo do barbeiro
 void cortarCabelo(unsigned id);
 void emitirRecibo(unsigned id);
-
 
 // Abstrações:
 void _sleep(unsigned seconds);
 void printCliente(char *str, unsigned id);
 void printBarbeiro(char *str, unsigned id);
 
-
-// Shared
-short customerCount = 0;
 unsigned long CLIENT_AMMOUNT = 0;
+unsigned long CLIENT_AMMOUNT_GAVE_UP = 0;
+
 
 // Control
 sem_t barberChairSemaphore; // start value @ 3
 sem_t sofaSemaphore; // start value @ 4
-sem_t shopSemaphore; // start value @ 20
+// sem_t shopSemaphore; // start value @ 20 -> not used because clients don't wait
 
 sem_t cashSemaphore; // start value @ 0
 sem_t receiptSemaphore; // start value @ 0
 
-sem_t barberSemaphore; // start value @ 0
-sem_t customerSemaphore; // start value @ 0
+sem_t barberReadySemaphore; // start value @ 3
+sem_t customerReadySemaphore; // start value @ 0
 
 pthread_mutex_t barberCashRegisterMutex;
 
@@ -103,15 +95,15 @@ int main(int argc, char *argv[]) {
     pthread_mutex_init(&mutexSofa, NULL);
     pthread_mutex_init(&mutexEmPe, NULL);
     sem_init(&barberChairSemaphore, 0, N_BARBERS);
+    // sem_init(&barberChairSemaphore, 0, 0);
     sem_init(&sofaSemaphore, 0, N_SOFA_SEATS);
-    sem_init(&shopSemaphore, 0, N_MAX_CUSTOMERS);
 
     // começa em zero pq é transação (cliente_cabelo_cortado x barbeiro)
     sem_init(&cashSemaphore, 0, 0);
     sem_init(&receiptSemaphore, 0, 0);
 
-    sem_init(&barberSemaphore, 0, 0);
-    sem_init(&customerSemaphore, 0, 0);
+    sem_init(&barberReadySemaphore, 0, 0);
+    sem_init(&customerReadySemaphore, 0, 0);
 
 
     for (size_t i = 0; i < N_BARBERS; i++) {
@@ -125,13 +117,13 @@ int main(int argc, char *argv[]) {
         pthread_create(&thCustomers[i], NULL, customerRoutine, &customerId[i]);
     }
 
-    printf("[INFO]::Thread creation successful\n");
+    printf("[INFO]::All threads created.\n");
 
     for (size_t i = 0; i < CLIENT_AMMOUNT; i++) {
         pthread_join(thCustomers[i], NULL);
     }
 
-    printf("[INFO]::Thread joining successful\n");
+    printf("[INFO]::All threads joined.\n");
 
 
     // destoy
@@ -141,13 +133,12 @@ int main(int argc, char *argv[]) {
     pthread_mutex_destroy(&mutexEmPe);
     sem_destroy(&barberChairSemaphore);
     sem_destroy(&sofaSemaphore);
-    sem_destroy(&shopSemaphore);
 
     sem_destroy(&cashSemaphore);
     sem_destroy(&receiptSemaphore);
 
-    sem_destroy(&barberSemaphore);
-    sem_destroy(&customerSemaphore);
+    sem_destroy(&barberReadySemaphore);
+    sem_destroy(&customerReadySemaphore);
 
     return 0;
 }
@@ -163,14 +154,16 @@ void *barberRoutine(void *args) {
     // for (size_t i = 0; i < CLIENT_AMMOUNT; i++) {
         // Realiza corte de cabelo do cliente
 
-        sem_wait(&customerSemaphore);
-        sem_post(&barberSemaphore);
+        sem_wait(&customerReadySemaphore);
+        sem_post(&barberReadySemaphore);
         cortarCabelo(barberID);
 
         // Espera o cliente pagar e emite recibo
         sem_wait(&cashSemaphore);
-        sem_post(&receiptSemaphore);
+        pthread_mutex_lock(&mutexRegistradora);
         emitirRecibo(barberID);
+        sem_post(&receiptSemaphore);
+        pthread_mutex_unlock(&mutexRegistradora);
 
         // Sinaliza o semaforo da cadeira (chair)
         sem_post(&barberChairSemaphore);
@@ -186,35 +179,52 @@ void *customerRoutine(void *args) {
     // printf("Inicializando rotina do cliente %ld\n", custID);
 
     // checa vagas de pé
-    pthread_mutex_lock(&mutexEmPe);
+        pthread_mutex_lock(&mutexEmPe);
     // printf("A fila em pe possui %d pessoas\n", qEmPe.count);
-    if (qEmPe.count >= N_MAX_EM_PE) {
+    if (qEmPe.count >= N_MAX_EM_PE) { // não utiliza um semaforo pq ele nao espera abrir, se n cabe, desiste
         printf("[INFO]::Numero maximo de clientes excedido!\n");
+        printCliente("Desistiu de cortar o cabelo.", custID);
+        CLIENT_AMMOUNT_GAVE_UP++;
         pthread_mutex_unlock(&mutexEmPe);
         pthread_exit(NULL);
     }
 
     // entra na loja
     entrarNaLoja(custID);
+
     enqueue(&qEmPe, custID);
     pthread_mutex_unlock(&mutexEmPe);
 
-    // checa vagas no sofa
+
+    // espera vaga no sofa
     sem_wait(&sofaSemaphore);
+
+    pthread_mutex_lock(&mutexEmPe);
     sentarNoSofa(custID);
     dequeue(&qEmPe);
+
+    pthread_mutex_lock(&mutexSofa);
     enqueue(&qSofa, custID);
+    pthread_mutex_unlock(&mutexSofa);
+
+    pthread_mutex_unlock(&mutexEmPe);
+
 
     // checa vagas do barbeiro
     sem_wait(&barberChairSemaphore);
+
+    pthread_mutex_lock(&mutexSofa);
     dequeue(&qSofa);
     sem_post(&sofaSemaphore);
     sentarCadeiraBarbeiro(custID);
+    pthread_mutex_unlock(&mutexSofa);
+
 
     // espera por barbeiro
-    sem_post(&customerSemaphore);
-    sem_wait(&barberSemaphore);
+    sem_post(&customerReadySemaphore);
+    sem_wait(&barberReadySemaphore);
     recebendoCorteCabelo(custID);
+
 
     // realiza pagamento
     sem_post(&cashSemaphore);
@@ -229,7 +239,7 @@ void *customerRoutine(void *args) {
 
 // Fluxo do cliente
 void entrarNaLoja(unsigned id) {
-    _sleep(0);
+    _sleep(1);
     printCliente("Entrou na loja.", id);
 }
 
