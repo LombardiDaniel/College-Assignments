@@ -228,11 +228,19 @@ void *customerRoutine(void *args) {
     sem_post(&customerReadySemaphore);
     recebendoCorteCabelo(custID);
 
+    // no barberRoutine:
+        // // Espera o cliente pagar e emite recibo
+        // sem_wait(&cashSemaphore);
+        // pthread_mutex_lock(&mutexRegistradora);
+        // emitirRecibo(barberID);
+        // sem_post(&receiptSemaphore);
+        // pthread_mutex_unlock(&mutexRegistradora);
+
 
     // realiza pagamento
     sem_post(&cashSemaphore);
-    sem_wait(&receiptSemaphore);
     pagar(custID);
+    sem_wait(&receiptSemaphore);
 
     // sai da loja
 
@@ -262,7 +270,7 @@ void recebendoCorteCabelo(unsigned id) {
 }
 
 void pagar(unsigned id) {
-    _sleep(0);
+    _sleep(1);
     printCliente("Pagou.", id);
 }
 
@@ -274,7 +282,7 @@ void cortarCabelo(unsigned id) {
 }
 
 void emitirRecibo(unsigned id) {
-    _sleep(0);
+    _sleep(1);
     printBarbeiro("Emitiu um recibo.", id);
 }
 
