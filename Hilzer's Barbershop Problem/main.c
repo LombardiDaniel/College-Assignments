@@ -32,7 +32,7 @@
 #define CADEIRA_OCUPADA                                              -1
 
 
-#define SIM_PERIOD                                                    1
+#define SIM_FREQ                                                    1
 
 
 void *customerRoutine(void *args); // args[0] is client_id
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
     sem_init(&cashSemaphore, 0, 0);
     sem_init(&receiptSemaphore, 0, 0);
 
-    sem_init(&barberReadySemaphore, 0, 0);
+    sem_init(&barberReadySemaphore, 0, 3);
     sem_init(&customerReadySemaphore, 0, 0);
 
 
@@ -124,6 +124,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("[INFO]::All threads joined.\n");
+    printf("[INFO]::%ld/%ld clients did not cut their hair today. :(\n", CLIENT_AMMOUNT_GAVE_UP, CLIENT_AMMOUNT);
 
 
     // destoy
@@ -154,9 +155,17 @@ void *barberRoutine(void *args) {
     // for (size_t i = 0; i < CLIENT_AMMOUNT; i++) {
         // Realiza corte de cabelo do cliente
 
-        sem_wait(&customerReadySemaphore);
+        // no costumerRoutine:
+            // // espera por barbeiro
+            // sem_post(&customerReadySemaphore);
+            // sem_wait(&barberReadySemaphore);
+            // recebendoCorteCabelo(custID);
+
         sem_post(&barberReadySemaphore);
+        sem_wait(&customerReadySemaphore);
         cortarCabelo(barberID);
+        sem_post(&barberChairSemaphore);
+
 
         // Espera o cliente pagar e emite recibo
         sem_wait(&cashSemaphore);
@@ -164,9 +173,6 @@ void *barberRoutine(void *args) {
         emitirRecibo(barberID);
         sem_post(&receiptSemaphore);
         pthread_mutex_unlock(&mutexRegistradora);
-
-        // Sinaliza o semaforo da cadeira (chair)
-        sem_post(&barberChairSemaphore);
     }
 
     return NULL;
@@ -191,7 +197,6 @@ void *customerRoutine(void *args) {
 
     // entra na loja
     entrarNaLoja(custID);
-
     enqueue(&qEmPe, custID);
     pthread_mutex_unlock(&mutexEmPe);
 
@@ -200,29 +205,27 @@ void *customerRoutine(void *args) {
     sem_wait(&sofaSemaphore);
 
     pthread_mutex_lock(&mutexEmPe);
-    sentarNoSofa(custID);
-    dequeue(&qEmPe);
-
-    pthread_mutex_lock(&mutexSofa);
-    enqueue(&qSofa, custID);
-    pthread_mutex_unlock(&mutexSofa);
-
-    pthread_mutex_unlock(&mutexEmPe);
+        dequeue(&qEmPe);
+        pthread_mutex_lock(&mutexSofa);
+            enqueue(&qSofa, custID);
+            sentarNoSofa(custID); // print
+        pthread_mutex_unlock(&mutexSofa);
+    pthread_mutex_unlock(&mutexEmPe); // só nao está mais de pé quando senta no sofá
 
 
     // checa vagas do barbeiro
     sem_wait(&barberChairSemaphore);
 
     pthread_mutex_lock(&mutexSofa);
-    dequeue(&qSofa);
-    sem_post(&sofaSemaphore);
-    sentarCadeiraBarbeiro(custID);
+        dequeue(&qSofa);
+        sentarCadeiraBarbeiro(custID); // print
     pthread_mutex_unlock(&mutexSofa);
+    sem_post(&sofaSemaphore); // só libera o sofá quando senta na cadeira do barbeiro
 
 
     // espera por barbeiro
-    sem_post(&customerReadySemaphore);
     sem_wait(&barberReadySemaphore);
+    sem_post(&customerReadySemaphore);
     recebendoCorteCabelo(custID);
 
 
@@ -239,7 +242,7 @@ void *customerRoutine(void *args) {
 
 // Fluxo do cliente
 void entrarNaLoja(unsigned id) {
-    _sleep(1);
+    _sleep(0);
     printCliente("Entrou na loja.", id);
 }
 
@@ -254,7 +257,7 @@ void sentarCadeiraBarbeiro(unsigned id) {
 }
 
 void recebendoCorteCabelo(unsigned id) {
-    _sleep(5);
+    _sleep(0);
     printCliente("Cortou o cabelo.", id);
 }
 
@@ -266,7 +269,7 @@ void pagar(unsigned id) {
 
 // Fluxo do barbeiro
 void cortarCabelo(unsigned id) {
-    _sleep(2);
+    _sleep(0);
     printBarbeiro("Cortou o cabelo de um cliente.", id);
 }
 
@@ -278,8 +281,13 @@ void emitirRecibo(unsigned id) {
 
 // Abstrações
 void _sleep(unsigned seconds_avg) {
-    float tmp = seconds_avg + rand() % (unsigned) (seconds_avg + 1);
-    sleep(tmp * SIM_PERIOD);
+    if (seconds_avg == 0)
+        return;
+
+    seconds_avg *= 1000000; // to microseconds
+
+    float tmp = seconds_avg + rand() % (unsigned) (seconds_avg*1.5);
+    usleep(tmp / SIM_FREQ);
 }
 
 void printCliente(char *str, unsigned id) {
