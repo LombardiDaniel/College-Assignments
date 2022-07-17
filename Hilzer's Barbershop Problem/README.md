@@ -148,7 +148,7 @@ recebendoCorteCabelo(custID)
 
 Em seguida, o cliente realiza o pagamento e espera pelo recibo emitido pelo barbeiro:
 
-```c
+```py
 sem_post(cashSemaphore)
 pagar(custID)
 sem_wait(receiptSemaphore)
