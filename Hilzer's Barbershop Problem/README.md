@@ -1,5 +1,4 @@
-
-## Hilzers Barbershop Problem
+## Hilzers Barbershop Problem 💈
 
 
 #### Problema em questão
