@@ -1,7 +1,7 @@
-main.out: main.c
+main.out: main.c queue.h
 	gcc -Wall -pedantic -Wextra -O0 -g main.c -o main.out -lpthread
 
-asm: main.c
+asm: main.c queue.h
 	gcc -Wall -pedantic -Wextra -O0 -g main.c -o main.asm -S -lpthread
 
 clean:

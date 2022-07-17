@@ -45,9 +45,10 @@ Na Figura 1.4, o processo cliente 1 termina (Cliente faz o pagamento, barbeiro e
 ```py
 entrarNaLoja()
 sentarNoSofa()
-cortarCabelo()
 sentarCadeiraBarbeiro()
+cortarCabelo()
 pagar()
+ir_embora()
 ```
 
 ##### Fluxo dos barbeiros:
