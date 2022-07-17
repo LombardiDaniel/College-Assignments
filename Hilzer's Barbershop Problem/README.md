@@ -1,5 +1,8 @@
-## Hilzers Barbershop Problem 💈
-
+# Hilzers Barbershop Problem 💈
+- Daniel Lombardi de Oliveira - 738340
+- Eric Pereira Queiroz Moreira - 799662
+- Gabrielly Castilho Guimarães - 805757
+- Arthur Takahiro Virgolino Nishimura - 800707
 
 #### Problema em questão
 > Our barbershop has three chairs, three barbers, and a waiting area that can accommodate four customers on a sofa and that has standing room for additional customers. Fire codes limit the total number of customers in the shop to 20.
