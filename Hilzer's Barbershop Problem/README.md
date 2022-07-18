@@ -19,15 +19,19 @@ Na Figura 1.2, os dois barbeiros são liberados e os dois clientes sentados no s
 
 Na Figura 1.3, o cliente 1 vai pagar e o barbeiro vai receber o dinheiro. O cliente 3 fica pronto.
 
-Na Figura 1.4, o processo cliente 1 termina (Cliente faz o pagamento, barbeiro emite o recibo) e o barbeiro volta para sua cadeira, permitindo que ele atenda o cliente 3.
+Na Figura 1.4, o processo cliente 1 termina (Cliente faz o pagamento, barbeiro emite o recibo).
 
-![Figure 1.1](11.png)
+Na Figura 1.5, o barbeiro volta para sua cadeira, permitindo que ele atenda o cliente 3.
 
-![Figure 1.2](12.png)
+![Figure 1.1](10.png)
 
-![Figure 1.3](13.png)
+![Figure 1.2](11.png)
 
-![Figure 1.4](14.png)
+![Figure 1.3](12.png)
+
+![Figure 1.4](13.png)
+
+![Figure 1.5](14.png)
 
 
 #### Breaking Down the Problem:
