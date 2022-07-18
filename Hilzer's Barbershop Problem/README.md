@@ -111,9 +111,13 @@ acontece **sempre**, portanto não será representado nos pseudo-códigos a segu
 A jornada do cliente se inicia fora da barbearia, ao chegar na porta, caso existam
 mais de 20 clientes dentro da mesma, ele entra.
 ```py
-if qEmPe.count >= N_MAX_EM_PE:
-    entrarNaLoja()
-    qEmPe.enqueue(custID);
+    if (qEmPe.count >= N_MAX_EM_PE) { // não utiliza um semaforo pq ele nao espera abrir, se n cabe, desiste
+    printf("[INFO]::Numero maximo de clientes excedido!\n");
+    printCliente("Desistiu de cortar o cabelo.", custID);
+    CLIENT_AMMOUNT_GAVE_UP++;
+    pthread_mutex_unlock(&mutexEmPe);
+    pthread_exit(NULL);
+}
 ```
 
 Ao entrar, o "pede passagem" ao semáforo do sofá e caso consiga, sai da fila de
