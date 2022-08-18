@@ -36,6 +36,8 @@ int benchmark(timedFileOp *op) {
             break;
 
     }
+
+    return 0;
 }
 
 
@@ -51,8 +53,6 @@ double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
 
     return elapsed_time;
 }
-
-double _benchmarkRandomWrite(size_t fileSize, char *fileName);
 
 
 double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
@@ -71,5 +71,5 @@ double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
     return elapsed_time;
 }
 
-
+double _benchmarkRandomWrite(size_t fileSize, char *fileName);
 double _benchmarkRandomRead(size_t fileSize, char *fileName);
