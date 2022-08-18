@@ -13,10 +13,10 @@
 #define READ                                                        0b00
 #define WRITE                                                       0b10
 
-#define SEQUENTIAL_WRITE                              (SEQUENTIAL & READ)
-#define RANDOM_WRITE                                      (RANDOM & READ)
-#define SEQUENTIAL_READ                              (SEQUENTIAL & WRITE)
-#define RANDOM_READ                                      (RANDOM & WRITE)
+#define SEQUENTIAL_WRITE                              (SEQUENTIAL | READ)
+#define RANDOM_WRITE                                      (RANDOM | READ)
+#define SEQUENTIAL_READ                              (SEQUENTIAL | WRITE)
+#define RANDOM_READ                                      (RANDOM | WRITE)
 
 // #include <time.h>
 //
