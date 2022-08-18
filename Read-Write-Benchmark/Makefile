@@ -1,7 +1,7 @@
-main.out: main.c queue.h
+main.out: main.c benchmarker.h benchmark.c
 	gcc -Wall -pedantic -Wextra -O0 -g main.c -o main.out -lpthread
 
-asm: main.c queue.h
+asm: main.c benchmarker.h benchmark.c
 	gcc -Wall -pedantic -Wextra -O0 -g main.c -o main.asm -S -lpthread
 
 clean:
