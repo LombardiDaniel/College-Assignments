@@ -29,15 +29,19 @@
 //   printf("Done in %f seconds\n", elapsed_time);
 // }
 
-typedef struct {
+typedef struct _timedFileOpStruct {
     double elapsedTime;
     unsigned char type;
     size_t fileSize;
+    char *fileName;
 } timedFileOp;
 
+void benchmark();
 
-int benchmarkRun(void *nome);
-
+double _benchmarkSequentialWrite(size_t fileSize, char *fileName);
+double _benchmarkRandomWrite(size_t fileSize, char *fileName);
+double _benchmarkSequentialRead(size_t fileSize, char *fileName);
+double _benchmarkRandomRead(size_t fileSize, char *fileName);
 
 
 #endif
