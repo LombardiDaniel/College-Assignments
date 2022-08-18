@@ -18,7 +18,26 @@
 // }
 
 
-void benchmark();
+int benchmark(timedFileOp *op) {
+
+    switch (op->type) {
+        case SEQUENTIAL_WRITE:
+            op->elapsedTime = _benchmarkSequentialWrite(
+                op->fileSize,
+                op->fileName
+            );
+            break;
+
+        case SEQUENTIAL_READ:
+            op->elapsedTime = _benchmarkSequentialRead(
+                op->fileSize,
+                op->fileName
+            );
+            break;
+
+    }
+}
+
 
 double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
     FILE *fd = fopen(fileName, 'w');
@@ -33,6 +52,24 @@ double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
     return elapsed_time;
 }
 
-double _benchmarkSequentialWrite(size_t fileSize, char *fileName);
+double _benchmarkRandomWrite(size_t fileSize, char *fileName);
+
+
+double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
+    FILE *fd = fopen(fileName, 'w');
+
+    unsigned char *byteBuff = 0;
+
+    clock_t start_time = clock();
+
+    for (size_t i = 0; i < fileSize; i++) {
+        size_t ammount = read(fd, byteBuff, 1);
+    }
+
+    double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
+
+    return elapsed_time;
+}
+
+
 double _benchmarkRandomRead(size_t fileSize, char *fileName);
-double _benchmarkSequentialRead(size_t fileSize, char *fileName);

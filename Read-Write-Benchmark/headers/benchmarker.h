@@ -13,9 +13,9 @@
 #define WRITE                                                       0b10
 
 #define SEQUENTIAL_WRITE                             (SEQUENTIAL | READ)
-#define RANDOM_WRITE                                     (RANDOM | READ)
+#define RANDOM_WRITE                                    (RANDOM | WRITE)
 #define SEQUENTIAL_READ                             (SEQUENTIAL | WRITE)
-#define RANDOM_READ                                     (RANDOM | WRITE)
+#define RANDOM_READ                                      (RANDOM | READ)
 
 #define BENCHMARK_QTY                                                500
 
