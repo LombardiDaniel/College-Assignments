@@ -5,3 +5,8 @@
 - Gabrielly Castilho Guimarães - 805757
 
 #### Problema
+
+
+
+#### Ioasdjfhakljd
+usar um shuffle numa lista contendo todas as posições do arquivo [0..tam-1] e seguir essa ordem de leitura
