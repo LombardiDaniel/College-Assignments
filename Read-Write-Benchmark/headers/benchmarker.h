@@ -37,7 +37,8 @@ typedef struct _timedFileOpStruct {
     char *fileName;
 } timedFileOp;
 
-void benchmark();
+
+int benchmark(timedFileOp *op);
 
 double _benchmarkSequentialWrite(size_t fileSize, char *fileName);
 double _benchmarkRandomWrite(size_t fileSize, char *fileName);
