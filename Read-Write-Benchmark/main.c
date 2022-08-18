@@ -23,8 +23,15 @@ int main() {
     char fileName[10];
 
     scanf("%d", &fileSize);
-    FILE *file = createFile(fileSize, fileName);
-    fillFile(file, fileSize);
+    sprintf(fileName, "%d", fileSize);
+    strcat(fileName, ".txt\0");
+
+    // Open file
+    FILE* file = fopen(fileName, "wb");
+    for(int i=0; i<fileSize; i++) {
+        fprintf(file, "@");
+    }
+    fclose(file);
 
     // Fill the struct (BENCHMARK SEQUENTIAL READ)
     timedFileOp op;
@@ -33,7 +40,7 @@ int main() {
     op.fileSize = fileSize;
     op.fileName = fileName;
 
-    benchmark(op);
+    benchmark(&op);
 
     printf("Sequencial Reading - Elapsed Time (s): %f\n", op.elapsedTime);
 

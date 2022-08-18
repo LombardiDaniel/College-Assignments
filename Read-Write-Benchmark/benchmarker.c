@@ -6,18 +6,6 @@
 #include <time.h>
 #include <string.h>
 
-// #include <time.h>
-//
-// int main(void) {
-//   clock_t start_time = clock();
-//
-//   // code or function to benchmark
-//
-//   double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
-//   printf("Done in %f seconds\n", elapsed_time);
-// }
-
-
 int benchmark(timedFileOp *op) {
 
     switch (op->type) {
@@ -56,7 +44,7 @@ double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
 
 
 double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
-    FILE *fd = fopen(fileName, 'w');
+    FILE *fd = fopen(fileName, 'r');
 
     unsigned char *byteBuff = 0;
 
