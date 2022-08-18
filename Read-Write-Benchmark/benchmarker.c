@@ -30,7 +30,7 @@ int benchmark(timedFileOp *op) {
 
 
 double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
-    FILE *fd = fopen(fileName, 'w');
+    FILE *fd = fopen(fileName, "wb");
 
     clock_t start_time = clock();
     size_t ammount = write(fd, '-', fileSize);
@@ -44,7 +44,7 @@ double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
 
 
 double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
-    FILE *fd = fopen(fileName, 'r');
+    FILE *fd = fopen(fileName, "rb");
 
     unsigned char *byteBuff = 0;
 

@@ -1,6 +1,7 @@
 #include "headers/benchmarker.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define atoa(x) #x
 
@@ -15,7 +16,7 @@ FILE *createFile(int fileSize, char *fileName) {
 void fillFile(FILE *file, int fileSize) {
     for(int i=0; i<fileSize; i++) {
         fprintf(file, "@");
-    }    
+    }
 }
 
 int main() {
@@ -38,6 +39,7 @@ int main() {
     op.elapsedTime = -1;
     op.type = SEQUENTIAL_READ;
     op.fileSize = fileSize;
+    // memcpy(op.fileName, fileName, 7);
     op.fileName = fileName;
 
     benchmark(&op);
