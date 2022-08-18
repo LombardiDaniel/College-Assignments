@@ -19,18 +19,7 @@
 
 #define BENCHMARK_QTY                                                500
 
-// #include <time.h>
-//
-// int main(void) {
-//   clock_t start_time = clock();
-//
-//   // code or function to benchmark
-//
-//   double elapsed_time = (double)(clock() - start_time) / CLOCKS_PER_SEC;
-//   printf("Done in %f seconds\n", elapsed_time);
-// }
-
-typedef struct _timedFileOpStruct {
+typedef struct {
     double elapsedTime;
     unsigned char type;
     size_t fileSize;

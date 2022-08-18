@@ -30,7 +30,6 @@ void lseekReadFile(FILE *file) {
 }
 
 int main() {
-
     char *filename = "foo.txt";
 
     // Leitura Sequencial
