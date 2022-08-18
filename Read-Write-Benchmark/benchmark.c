@@ -12,28 +12,33 @@ void readFile(char *filePath) {
         return;
     }
 
-    while(read(fd, &c, 1)) {
-        printf("%c", c);
-    }
-    printf("\n\n");
+    while(read(fd, &c, 1));
 
     return;
 }
 
 void preadFile(FILE *file) {
+
+
+    return;
+}
+
+void lseekReadFile(FILE *file) {
+
+
     return;
 }
 
 int main() {
 
+    char *filename = "foo.txt";
+
+    // Leitura Sequencial
     clock_t begin = clock();
-
-    // Code goes here
-    readFile("foo.txt");
-
+    readFile(filename);
     clock_t end = clock();
     double elapsed_secs = (double) (end - begin) / CLOCKS_PER_SEC;
+    printf("Sequencial Reading - Elapsed Time (s): %f\n", elapsed_secs);
 
-    printf("Elapsed Time (s): %f\n", elapsed_secs);
     return 0;
 }
