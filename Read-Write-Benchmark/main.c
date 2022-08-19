@@ -23,25 +23,29 @@ void fillFile(FILE *file, int fileSize) {
 
 int main() {
     // Variable initialization
-    int fileSize = -1;
+    int fileAmount, fileSize;
     char fileName[10];
-    scanf("%d", &fileSize);
+    scanf("%d", &fileAmount);
 
-    // Write file
-    FILE* file = createFile(fileSize, fileName);
-    fillFile(file, fileSize);
-    fclose(file);
+    for(int i=1; i<=fileAmount; i++) {
+        fileSize = i;
 
-    // Fill the struct (BENCHMARK SEQUENTIAL READ)
-    timedFileOp op;
-    op.elapsedTime = -1;
-    op.type = SEQUENTIAL_READ;
-    op.fileSize = fileSize;
-    op.fileName = fileName;
+        // Write file
+        FILE* file = createFile(fileSize, fileName);
+        fillFile(file, fileSize);
+        fclose(file);
 
-    benchmark(&op);
+        // Fill the struct (BENCHMARK SEQUENTIAL READ)
+        timedFileOp op;
+        op.elapsedTime = -1;
+        op.type = SEQUENTIAL_READ;
+        op.fileSize = fileSize;
+        op.fileName = fileName;
 
-    printf("Sequencial Reading - Elapsed Time (s): %f\n", op.elapsedTime);
+        benchmark(&op);
+
+        printf("Sequencial Reading - Elapsed Time (s): %f\n", op.elapsedTime);
+    }
 
     return 0;
 }
