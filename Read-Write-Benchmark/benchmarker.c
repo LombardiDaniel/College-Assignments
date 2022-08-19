@@ -101,7 +101,7 @@ double _benchmarkRandomWrite(size_t fileSize, char *fileName) {
     clock_t start_time = clock();
 
     for (size_t i = 0; i < fileSize; i++) {
-        size_t ammount = write(fd, "#", 1);
+        size_t ammount = pwrite(fd, "#", 1, bytesReadOrder[i]);
     }
 
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
@@ -134,7 +134,7 @@ double _benchmarkRandomRead(size_t fileSize, char *fileName) {
     clock_t start_time = clock();
 
     for (size_t i = 0; i < fileSize; i++) {
-        size_t ammount = read(fd, byteBuff, 1);
+        size_t ammount = pread(fd, byteBuff, 1, bytesReadOrder[i]);
     }
 
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
