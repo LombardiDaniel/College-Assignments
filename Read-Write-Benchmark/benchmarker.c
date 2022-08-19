@@ -52,7 +52,7 @@ double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
 
     fclose(fd);
-    
+
     if (ammount != fileSize)
         return -1.f;
 
@@ -78,11 +78,12 @@ double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
     return elapsed_time;
 }
 
+
 double _benchmarkRandomWrite(size_t fileSize, char *fileName) {
 
     // we first create a list containing the access order of the file,
     // then we shuffle it and follow the new pseudo-random order
-    int *bytesReadOrder = (int *) malloc(fileSize * sizeof(int));
+    size_t *bytesReadOrder = (size_t *) malloc(fileSize * sizeof(int));
 
     for (size_t i = 0; i < fileSize; i++)
         bytesReadOrder[i] = i;
@@ -93,7 +94,6 @@ double _benchmarkRandomWrite(size_t fileSize, char *fileName) {
     }
 
     // Benchmarking starts:
-
     FILE *fd = fopen(fileName, "rwb");
 
     unsigned char *byteBuff = 0;
@@ -104,15 +104,46 @@ double _benchmarkRandomWrite(size_t fileSize, char *fileName) {
         size_t ammount = write(fd, "#", 1);
     }
 
-    fclose(fd);
-
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
+
+    fclose(fd);
 
     return elapsed_time;
 
 }
 
-double _benchmarkRandomRead(size_t fileSize, char *fileName);
+
+double _benchmarkRandomRead(size_t fileSize, char *fileName) {
+
+    // we first create a list containing the access order of the file,
+    // then we shuffle it and follow the new pseudo-random order
+    size_t *bytesReadOrder = (size_t *) malloc(fileSize * sizeof(int));
+
+    for (size_t i = 0; i < fileSize; i++)
+        bytesReadOrder[i] = i;
+
+    for (size_t i = 0; i < fileSize; i++) {
+        int other_i = rand() % fileSize;
+        swap(&bytesReadOrder[i], &bytesReadOrder[other_i]);
+    }
+
+    // Benchmarking starts:
+    FILE *fd = fopen(fileName, "rb");
+
+    unsigned char *byteBuff = 0;
+    clock_t start_time = clock();
+
+    for (size_t i = 0; i < fileSize; i++) {
+        size_t ammount = read(fd, byteBuff, 1);
+    }
+
+    double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
+
+    fclose(fd);
+
+    return elapsed_time;
+
+}
 
 
 void swap(int *a, int *b) {
