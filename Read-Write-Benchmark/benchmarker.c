@@ -24,6 +24,20 @@ int benchmark(timedFileOp *op) {
             );
             break;
 
+        case RANDOM_WRITE:
+            op->elapsedTime = _benchmarkRandomWrite(
+                op->fileSize,
+                op->fileName
+            );
+            break;
+
+        case RANDOM_READ:
+            op->elapsedTime = _benchmarkRandomRead(
+                op->fileSize,
+                op->fileName
+            );
+            break;
+
     }
 
     return 0;

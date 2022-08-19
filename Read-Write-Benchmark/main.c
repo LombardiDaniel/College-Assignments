@@ -9,7 +9,7 @@
 
 FILE *createFile(int fileSize, char *fileName) {
     sprintf(fileName, "%d", fileSize);
-    strcat(fileName, ".txt");
+    strcat(fileName, ".txt\0");
 
     // Open file
     return fopen(fileName, "wb");
@@ -22,18 +22,14 @@ void fillFile(FILE *file, int fileSize) {
 }
 
 int main() {
+    // Variable initialization
     int fileSize = -1;
     char fileName[10];
-
     scanf("%d", &fileSize);
-    sprintf(fileName, "%d", fileSize);
-    strcat(fileName, ".txt\0");
 
-    // Open file
-    FILE* file = fopen(fileName, "wb");
-    for(int i=0; i<fileSize; i++) {
-        fprintf(file, "@");
-    }
+    // Write file
+    FILE* file = createFile(fileSize, fileName);
+    fillFile(file, fileSize);
     fclose(file);
 
     // Fill the struct (BENCHMARK SEQUENTIAL READ)
@@ -41,7 +37,6 @@ int main() {
     op.elapsedTime = -1;
     op.type = SEQUENTIAL_READ;
     op.fileSize = fileSize;
-    // memcpy(op.fileName, fileName, 7);
     op.fileName = fileName;
 
     benchmark(&op);
