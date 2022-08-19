@@ -35,4 +35,6 @@ double _benchmarkSequentialRead(size_t fileSize, char *fileName);
 double _benchmarkRandomRead(size_t fileSize, char *fileName);
 
 
+void swap(int *a, int *b);
+
 #endif
