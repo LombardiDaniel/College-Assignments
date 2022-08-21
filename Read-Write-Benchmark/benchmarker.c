@@ -86,7 +86,7 @@ double _benchmarkRandomWrite(size_t opSize, char *fileName) {
 
     // we first create a list containing the access order of the file,
     // then we shuffle it and follow the new pseudo-random order
-    size_t *bytesReadOrder = (size_t *) malloc(opSize * sizeof(int));
+    size_t *bytesReadOrder = (size_t *) malloc(opSize * sizeof(size_t));
 
     for (size_t i = 0; i < opSize; i++)
         bytesReadOrder[i] = i;
@@ -120,7 +120,7 @@ double _benchmarkRandomRead(size_t opSize, char *fileName) {
 
     // we first create a list containing the access order of the file,
     // then we shuffle it and follow the new pseudo-random order
-    size_t *bytesReadOrder = (size_t *) malloc(opSize * sizeof(int));
+    size_t *bytesReadOrder = (size_t *) malloc(opSize * sizeof(size_t));
 
     for (size_t i = 0; i < opSize; i++)
         bytesReadOrder[i] = i;
