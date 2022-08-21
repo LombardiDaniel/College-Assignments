@@ -35,7 +35,7 @@ int main(int argc, char const *argv[]) {
     // Variable initialization
     int opSize;
     long long int fileSize = 2 * getTotalSystemMemory();
-    char fileName[10];
+    char fileName[1024];
     int sequentialReadTime, randomReadTime;
 
     opSize = atoi(argv[argc-1]);
