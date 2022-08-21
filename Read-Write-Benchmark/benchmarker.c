@@ -146,7 +146,7 @@ double _benchmarkRandomRead(size_t opSize, char *fileName) {
 }
 
 
-void swap(int *a, int *b) {
+void swap(unsigned *a, unsigned *b) {
     int *tmp = a;
     a = b;
     b = tmp;
