@@ -28,7 +28,8 @@ unsigned long long getTotalSystemMemory() {
     long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);
 
-    return pages * page_size;
+    return 2_000_000_000;
+    // return pages * page_size;
 }
 
 int main(int argc, char const *argv[]) {
