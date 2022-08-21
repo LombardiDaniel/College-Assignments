@@ -18,10 +18,10 @@ FILE *createFile(int opSize, char *fileName) {
 void fillFile(FILE *file, long long int fileSize) {
     printf("File size: %lld\n", fileSize);
 
-    // for(int i=0; i<fileSize; i++) {
-    //     fprintf(file, "@");
-    // }
-    pwrite(file, "@", fileSize, 0);
+    for(int i=0; i<fileSize; i++) {
+        fprintf(file, "@");
+    }
+    // fwrite(file, "@", 1, fileSize, 0);
 }
 
 unsigned long long getTotalSystemMemory() {
