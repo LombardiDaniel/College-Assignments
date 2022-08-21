@@ -8,15 +8,16 @@
 #define atoa(x) #x
 
 
-FILE *createFile(int fileSize, char *fileName) {
-    sprintf(fileName, "data/%d.txt\0", fileSize);
+FILE *createFile(int opSize, char *fileName) {
+    sprintf(fileName, "data/%d.txt\0", opSize);
 
     // Open file
     return fopen(fileName, "wb");
 }
 
-void fillFile(FILE *file) {
-    int fileSize = 2 * getTotalSystemMemory();
+void fillFile(FILE *file, long long int fileSize) {
+    printf("File size: %lld\n", fileSize);
+
     for(int i=0; i<fileSize; i++) {
         fprintf(file, "@");
     }
@@ -31,18 +32,17 @@ unsigned long long getTotalSystemMemory() {
 
 int main() {
     // Variable initialization
-    int fileAmount, opSize;
+    int opSize;
+    long long int fileSize = 2 * getTotalSystemMemory();
     char fileName[10];
+    int sequentialReadTime, randomReadTime;
 
-    printf("Operation Size: \n");
-    scanf("%d", &opSize);
-
-    double sequentialReadTime = 0;
-    double randomReadTime = 0;
+    printf("Operation size: \n");
+    scanf("%d", &opSize);    
 
     // Write file
     FILE* file = createFile(opSize, fileName);
-    fillFile(file);
+    fillFile(file, fileSize);
     fclose(file);
 
     // Fill the struct (BENCHMARK SEQUENTIAL READ)
@@ -53,9 +53,10 @@ int main() {
     sreadOperation.fileName = fileName;
 
     benchmark(&sreadOperation);
-    printf("Random Reading - Elapsed Time (s): %f\n", sreadOperation.elapsedTime);
+    sequentialReadTime = sreadOperation.elapsedTime;
+    printf("Sequential Reading - Elapsed Time (s): %f\n", sreadOperation.elapsedTime);
 
-    // Fill the struct (BENCHMARK RANDOM READ)
+    // // // Fill the struct (BENCHMARK RANDOM READ)
     timedFileOp rreadOperation;
     rreadOperation.elapsedTime = -1;
     rreadOperation.type = RANDOM_READ;
@@ -63,6 +64,7 @@ int main() {
     rreadOperation.fileName = fileName;
 
     benchmark(&rreadOperation);
+    randomReadTime = rreadOperation.elapsedTime;
     printf("Random Reading - Elapsed Time (s): %f\n", rreadOperation.elapsedTime);
 
     return 0;
