@@ -9,7 +9,7 @@
 
 
 FILE *createFile(int opSize, char *fileName) {
-    sprintf(fileName, "data/%d.txt\0", opSize);
+    sprintf(fileName, "data_%d.txt\0", opSize);
 
     // Open file
     return fopen(fileName, "wb");
@@ -18,9 +18,10 @@ FILE *createFile(int opSize, char *fileName) {
 void fillFile(FILE *file, long long int fileSize) {
     printf("File size: %lld\n", fileSize);
 
-    for(int i=0; i<fileSize; i++) {
-        fprintf(file, "@");
-    }
+    // for(int i=0; i<fileSize; i++) {
+    //     fprintf(file, "@");
+    // }
+    pwrite(file, "@", fileSize, 0);
 }
 
 unsigned long long getTotalSystemMemory() {
@@ -33,7 +34,7 @@ unsigned long long getTotalSystemMemory() {
 int main(int argc, char const *argv[]) {
     // Variable initialization
     int opSize;
-    long long int fileSize = (long long) 1/10 * getTotalSystemMemory();
+    long long int fileSize = 2 * getTotalSystemMemory();
     char fileName[10];
     int sequentialReadTime, randomReadTime;
 
