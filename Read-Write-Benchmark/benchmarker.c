@@ -45,30 +45,33 @@ int benchmark(timedFileOp *op) {
 
 
 double _benchmarkSequentialWrite(size_t opSize, char *fileName) {
-    FILE *fd = fopen(fileName, "wb");
+    FILE *fd = fopen(fileName, "r+");
 
     clock_t start_time = clock();
-    size_t amount = write(fd, '-', opSize);
+    // size_t amount = write(fd, '-', opSize);
+    for(int i = 0; i < opSize; i++)
+        write(fd, '-', 1);
+
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
 
     fclose(fd);
 
-    if (amount != opSize)
-        return -1.f;
+    // if (amount != opSize)
+    //     return -1.f;
 
     return elapsed_time;
 }
 
 
 double _benchmarkSequentialRead(size_t opSize, char *fileName) {
-    FILE *fd = fopen(fileName, "rb");
+    FILE *fd = fopen(fileName, "r");
 
-    unsigned char *byteBuff = 0;
+    unsigned char byteBuff[10];
 
     clock_t start_time = clock();
 
     for (size_t i = 0; i < opSize; i++) {
-        size_t amount = read(fd, byteBuff, 1);
+        read(fd, &byteBuff[0], 1);
     }
 
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
@@ -94,14 +97,14 @@ double _benchmarkRandomWrite(size_t opSize, char *fileName) {
     }
 
     // Benchmarking starts:
-    FILE *fd = fopen(fileName, "rwb");
+    FILE *fd = fopen(fileName, "r+");
 
     unsigned char *byteBuff = 0;
 
     clock_t start_time = clock();
 
     for (size_t i = 0; i < opSize; i++) {
-        size_t amount = pwrite(fd, "#", 1, bytesReadOrder[i]);
+        pwrite(fd, "#", 1, bytesReadOrder[i]);
     }
 
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
@@ -128,13 +131,13 @@ double _benchmarkRandomRead(size_t opSize, char *fileName) {
     }
 
     // Benchmarking starts:
-    FILE *fd = fopen(fileName, "rb");
+    FILE *fd = fopen(fileName, "r");
 
     unsigned char *byteBuff = 0;
     clock_t start_time = clock();
 
     for (size_t i = 0; i < opSize; i++) {
-        size_t amount = pread(fd, byteBuff, 1, bytesReadOrder[i]);
+        pread(fd, byteBuff, 1, bytesReadOrder[i]);
     }
 
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
@@ -147,7 +150,7 @@ double _benchmarkRandomRead(size_t opSize, char *fileName) {
 
 
 void swap(unsigned *a, unsigned *b) {
-    int *tmp = a;
+    unsigned *tmp = a;
     a = b;
     b = tmp;
 }
