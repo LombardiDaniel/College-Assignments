@@ -30,15 +30,16 @@ unsigned long long getTotalSystemMemory() {
     return pages * page_size;
 }
 
-int main() {
+int main(int argc, char const *argv[]) {
     // Variable initialization
     int opSize;
     long long int fileSize = 2 * getTotalSystemMemory();
     char fileName[10];
     int sequentialReadTime, randomReadTime;
 
-    printf("Operation size: \n");
-    scanf("%d", &opSize);
+    opSize = argv[argc-1];
+    // printf("Operation size: \n");
+    // scanf("%d", &opSize);
 
     FILE *results = fopen("results.txt", 'w');
     // Write file
