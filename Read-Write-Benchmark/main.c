@@ -33,15 +33,15 @@ unsigned long long getTotalSystemMemory() {
 int main(int argc, char const *argv[]) {
     // Variable initialization
     int opSize;
-    long long int fileSize = 2 * getTotalSystemMemory();
+    long long int fileSize = (long long) 1/10 * getTotalSystemMemory();
     char fileName[10];
     int sequentialReadTime, randomReadTime;
 
-    opSize = argv[argc-1];
+    opSize = atoi(argv[argc-1]);
     // printf("Operation size: \n");
     // scanf("%d", &opSize);
 
-    FILE *results = fopen("results.txt", 'w');
+    FILE *results = fopen("results.txt", "w");
     // Write file
     FILE* file = createFile(opSize, fileName);
     fillFile(file, fileSize);
