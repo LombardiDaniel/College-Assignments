@@ -28,7 +28,7 @@ unsigned long long getTotalSystemMemory() {
     long pages = sysconf(_SC_PHYS_PAGES);
     long page_size = sysconf(_SC_PAGE_SIZE);
 
-    return 2_000_000_000;
+    return 2000000000;
     // return pages * page_size;
 }
 
