@@ -24,30 +24,17 @@ void fillFile(FILE *file, long long int fileSize) {
     // fwrite(file, "@", 1, fileSize, 0);
 }
 
-unsigned long long getTotalSystemMemory() {
-    long pages = sysconf(_SC_PHYS_PAGES);
-    long page_size = sysconf(_SC_PAGE_SIZE);
-
-    return 2000000000;
-    // return pages * page_size;
-}
 
 int main(int argc, char const *argv[]) {
     // Variable initialization
-    int opSize;
-    long long int fileSize = 2 * getTotalSystemMemory();
-    printf("FileSize: %lld", fileSize);
+    int opSize = atoi(argv[argc-1]);;
     char fileName[1024];
     int sequentialReadTime, randomReadTime;
-
-    opSize = atoi(argv[argc-1]);
-    // printf("Operation size: \n");
-    // scanf("%d", &opSize);
 
     FILE *results = fopen("results.txt", "w");
     // Write file
     FILE* file = createFile(opSize, fileName);
-    fillFile(file, fileSize);
+    fillFile(file, opSize);
     fclose(file);
 
     // Fill the struct (BENCHMARK SEQUENTIAL READ)
