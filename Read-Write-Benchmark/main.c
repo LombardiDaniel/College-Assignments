@@ -35,6 +35,7 @@ int main(int argc, char const *argv[]) {
     // Variable initialization
     int opSize;
     long long int fileSize = 2 * getTotalSystemMemory();
+    printf("FileSize: %lld", fileSize);
     char fileName[1024];
     int sequentialReadTime, randomReadTime;
 
