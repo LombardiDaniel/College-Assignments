@@ -4,9 +4,6 @@
 #include <stdio.h>
 #include <time.h>
 
-#define MIN_SIZE                                                    2<<0
-#define MAX_SIZE                                                    2<<20
-
 #define SEQUENTIAL                                                  0b00
 #define RANDOM                                                      0b01
 #define READ                                                        0b00
