@@ -47,7 +47,7 @@ int main(int argc, char const *argv[]) {
 
     printf("MAX_SIZE=%llu\n", MAX_SIZE);
     while (currOperation.opSize <= MAX_SIZE) {
-        printf("%lu\n", currOperation.opSize);
+        // printf("%lu\n", currOperation.opSize);
         // printf("....\n");
 
         currOperation.type = SEQUENTIAL_READ;
