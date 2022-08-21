@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #define MIN_SIZE                                                    2<<0
-#define MAX_SIZE                                                    2<<20
+#define MAX_SIZE                                                    2<<18
 #define FILE_NAME                                              "data.txt"
 
 
@@ -45,9 +45,9 @@ int main(int argc, char const *argv[]) {
     // currOperation.opSize = 8202;
     currOperation.fileName = (char *) FILE_NAME;
 
-    printf("MAX_SIZE=%llu\n", MAX_SIZE);
+    printf("MAX_SIZE=%llu\n", (long long unsigned) MAX_SIZE);
     while (currOperation.opSize <= MAX_SIZE) {
-        // printf("%lu\n", currOperation.opSize);
+        printf("%lu\n", currOperation.opSize);
         // printf("....\n");
 
         currOperation.type = SEQUENTIAL_READ;
@@ -71,6 +71,7 @@ int main(int argc, char const *argv[]) {
         // printf("----\n");m
 
         currOperation.opSize += 50;
+
     }
 
     fclose(r_s_r);
