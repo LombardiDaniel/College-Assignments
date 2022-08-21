@@ -12,28 +12,28 @@ int benchmark(timedFileOp *op) {
     switch (op->type) {
         case SEQUENTIAL_WRITE:
             op->elapsedTime = _benchmarkSequentialWrite(
-                op->fileSize,
+                op->opSize,
                 op->fileName
             );
             break;
 
         case SEQUENTIAL_READ:
             op->elapsedTime = _benchmarkSequentialRead(
-                op->fileSize,
+                op->opSize,
                 op->fileName
             );
             break;
 
         case RANDOM_WRITE:
             op->elapsedTime = _benchmarkRandomWrite(
-                op->fileSize,
+                op->opSize,
                 op->fileName
             );
             break;
 
         case RANDOM_READ:
             op->elapsedTime = _benchmarkRandomRead(
-                op->fileSize,
+                op->opSize,
                 op->fileName
             );
             break;
@@ -44,30 +44,30 @@ int benchmark(timedFileOp *op) {
 }
 
 
-double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
+double _benchmarkSequentialWrite(size_t opSize, char *fileName) {
     FILE *fd = fopen(fileName, "wb");
 
     clock_t start_time = clock();
-    size_t amount = write(fd, '-', fileSize);
+    size_t amount = write(fd, '-', opSize);
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
 
     fclose(fd);
 
-    if (amount != fileSize)
+    if (amount != opSize)
         return -1.f;
 
     return elapsed_time;
 }
 
 
-double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
+double _benchmarkSequentialRead(size_t opSize, char *fileName) {
     FILE *fd = fopen(fileName, "rb");
 
     unsigned char *byteBuff = 0;
 
     clock_t start_time = clock();
 
-    for (size_t i = 0; i < fileSize; i++) {
+    for (size_t i = 0; i < opSize; i++) {
         size_t amount = read(fd, byteBuff, 1);
     }
 
@@ -79,17 +79,17 @@ double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
 }
 
 
-double _benchmarkRandomWrite(size_t fileSize, char *fileName) {
+double _benchmarkRandomWrite(size_t opSize, char *fileName) {
 
     // we first create a list containing the access order of the file,
     // then we shuffle it and follow the new pseudo-random order
-    size_t *bytesReadOrder = (size_t *) malloc(fileSize * sizeof(int));
+    size_t *bytesReadOrder = (size_t *) malloc(opSize * sizeof(int));
 
-    for (size_t i = 0; i < fileSize; i++)
+    for (size_t i = 0; i < opSize; i++)
         bytesReadOrder[i] = i;
 
-    for (size_t i = 0; i < fileSize; i++) {
-        int other_i = rand() % fileSize;
+    for (size_t i = 0; i < opSize; i++) {
+        int other_i = rand() % opSize;
         swap(&bytesReadOrder[i], &bytesReadOrder[other_i]);
     }
 
@@ -100,7 +100,7 @@ double _benchmarkRandomWrite(size_t fileSize, char *fileName) {
 
     clock_t start_time = clock();
 
-    for (size_t i = 0; i < fileSize; i++) {
+    for (size_t i = 0; i < opSize; i++) {
         size_t amount = pwrite(fd, "#", 1, bytesReadOrder[i]);
     }
 
@@ -113,17 +113,17 @@ double _benchmarkRandomWrite(size_t fileSize, char *fileName) {
 }
 
 
-double _benchmarkRandomRead(size_t fileSize, char *fileName) {
+double _benchmarkRandomRead(size_t opSize, char *fileName) {
 
     // we first create a list containing the access order of the file,
     // then we shuffle it and follow the new pseudo-random order
-    size_t *bytesReadOrder = (size_t *) malloc(fileSize * sizeof(int));
+    size_t *bytesReadOrder = (size_t *) malloc(opSize * sizeof(int));
 
-    for (size_t i = 0; i < fileSize; i++)
+    for (size_t i = 0; i < opSize; i++)
         bytesReadOrder[i] = i;
 
-    for (size_t i = 0; i < fileSize; i++) {
-        int other_i = rand() % fileSize;
+    for (size_t i = 0; i < opSize; i++) {
+        int other_i = rand() % opSize;
         swap(&bytesReadOrder[i], &bytesReadOrder[other_i]);
     }
 
@@ -133,7 +133,7 @@ double _benchmarkRandomRead(size_t fileSize, char *fileName) {
     unsigned char *byteBuff = 0;
     clock_t start_time = clock();
 
-    for (size_t i = 0; i < fileSize; i++) {
+    for (size_t i = 0; i < opSize; i++) {
         size_t amount = pread(fd, byteBuff, 1, bytesReadOrder[i]);
     }
 
