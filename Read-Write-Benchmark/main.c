@@ -14,8 +14,8 @@ FILE *createFile(int fileSize, char *fileName) {
     return fopen(fileName, "wb");
 }
 
-void fillFile(FILE *file, int fileSize) {
-    for(int i=0; i<fileSize; i++) {
+void fillFile(FILE *file, int opSize) {
+    for(int i=0; i<opSize; i++) {
         fprintf(file, "@");
     }
 }
@@ -29,7 +29,7 @@ unsigned long long getTotalSystemMemory() {
 
 int main() {
     // Variable initialization
-    int fileAmount, fileSize;
+    int fileAmount, opSize;
     char fileName[10];
     scanf("%d", &fileAmount);
 
@@ -39,18 +39,18 @@ int main() {
     FILE *sequentialReadData = fopen("sequential_read_data.txt", "wb");
 
     for(int i=1; i<=fileAmount; i++) {
-        fileSize = i;
+        opSize = i;
 
         // Write file
-        FILE* file = createFile(fileSize, fileName);
-        fillFile(file, fileSize);
+        FILE* file = createFile(opSize, fileName);
+        fillFile(file, opSize);
         fclose(file);
 
         // Fill the struct (BENCHMARK SEQUENTIAL READ)
         timedFileOp sreadOperation;
         sreadOperation.elapsedTime = -1;
         sreadOperation.type = SEQUENTIAL_READ;
-        sreadOperation.fileSize = fileSize;
+        sreadOperation.opSize = opSize;
         sreadOperation.fileName = fileName;
 
         benchmark(&sreadOperation);
@@ -61,7 +61,7 @@ int main() {
         // timedFileOp rreadOperation;
         // rreadOperation.elapsedTime = -1;
         // rreadOperation.type = RANDOM_READ;
-        // rreadOperation.fileSize = fileSize;
+        // rreadOperation.opSize = opSize;
         // rreadOperation.fileName = fileName;
 
         // benchmark(&rreadOperation);

@@ -22,17 +22,17 @@
 typedef struct {
     double elapsedTime;
     unsigned char type;
-    size_t fileSize;
+    size_t opSize;
     char *fileName;
 } timedFileOp;
 
 
 int benchmark(timedFileOp *op);
 
-double _benchmarkSequentialWrite(size_t fileSize, char *fileName);
-double _benchmarkRandomWrite(size_t fileSize, char *fileName);
-double _benchmarkSequentialRead(size_t fileSize, char *fileName);
-double _benchmarkRandomRead(size_t fileSize, char *fileName);
+double _benchmarkSequentialWrite(size_t opSize, char *fileName);
+double _benchmarkRandomWrite(size_t opSize, char *fileName);
+double _benchmarkSequentialRead(size_t opSize, char *fileName);
+double _benchmarkRandomRead(size_t opSize, char *fileName);
 
 
 void swap(int *a, int *b);
