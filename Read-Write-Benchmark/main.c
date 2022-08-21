@@ -38,8 +38,9 @@ int main() {
     int sequentialReadTime, randomReadTime;
 
     printf("Operation size: \n");
-    scanf("%d", &opSize);    
+    scanf("%d", &opSize);
 
+    FILE *results = fopen("results.txt", 'w');
     // Write file
     FILE* file = createFile(opSize, fileName);
     fillFile(file, fileSize);
@@ -65,7 +66,13 @@ int main() {
 
     benchmark(&rreadOperation);
     randomReadTime = rreadOperation.elapsedTime;
+    // fwrite(results, 2 * sizeof(int), 1, FILE *restrict stream);
+    // tenq escrever os dados num arquivo de texto, pra ficar assim:
+    // tam, optype, time\n
+    // 300, 0011, double(time)\n
     printf("Random Reading - Elapsed Time (s): %f\n", rreadOperation.elapsedTime);
+
+    fclose(results);
 
     return 0;
 }
