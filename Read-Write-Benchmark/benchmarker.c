@@ -48,12 +48,12 @@ double _benchmarkSequentialWrite(size_t fileSize, char *fileName) {
     FILE *fd = fopen(fileName, "wb");
 
     clock_t start_time = clock();
-    size_t ammount = write(fd, '-', fileSize);
+    size_t amount = write(fd, '-', fileSize);
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
 
     fclose(fd);
 
-    if (ammount != fileSize)
+    if (amount != fileSize)
         return -1.f;
 
     return elapsed_time;
@@ -68,7 +68,7 @@ double _benchmarkSequentialRead(size_t fileSize, char *fileName) {
     clock_t start_time = clock();
 
     for (size_t i = 0; i < fileSize; i++) {
-        size_t ammount = read(fd, byteBuff, 1);
+        size_t amount = read(fd, byteBuff, 1);
     }
 
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
@@ -101,7 +101,7 @@ double _benchmarkRandomWrite(size_t fileSize, char *fileName) {
     clock_t start_time = clock();
 
     for (size_t i = 0; i < fileSize; i++) {
-        size_t ammount = pwrite(fd, "#", 1, bytesReadOrder[i]);
+        size_t amount = pwrite(fd, "#", 1, bytesReadOrder[i]);
     }
 
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
@@ -134,7 +134,7 @@ double _benchmarkRandomRead(size_t fileSize, char *fileName) {
     clock_t start_time = clock();
 
     for (size_t i = 0; i < fileSize; i++) {
-        size_t ammount = pread(fd, byteBuff, 1, bytesReadOrder[i]);
+        size_t amount = pread(fd, byteBuff, 1, bytesReadOrder[i]);
     }
 
     double elapsed_time = (double) (clock() - start_time) / CLOCKS_PER_SEC;
