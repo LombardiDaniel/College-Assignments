@@ -38,6 +38,11 @@ int main(int argc, char const *argv[]) {
     FILE *r_s_w = fopen("seq_write.txt", "w");
     FILE *r_r_r = fopen("rand_read.txt", "w");
     FILE *r_r_w = fopen("rand_write.txt", "w");
+    fprintf(r_s_r, "SIZE,TIME\n");
+    fprintf(r_s_w, "SIZE,TIME\n");
+    fprintf(r_r_r, "SIZE,TIME\n");
+    fprintf(r_r_w, "SIZE,TIME\n");
+    
 
     timedFileOp currOperation;
     currOperation.elapsedTime = -1;
