@@ -92,8 +92,10 @@ double _benchmarkRandomWrite(size_t opSize, char *fileName) {
         bytesReadOrder[i] = i;
 
     for (size_t i = 0; i < opSize; i++) {
-        int other_i = rand() % opSize;
-        swap(&bytesReadOrder[i], &bytesReadOrder[other_i]);
+        size_t other_i = rand() % opSize;
+        size_t tmp = bytesReadOrder[i];
+        bytesReadOrder[i] = bytesReadOrder[other_i];
+        bytesReadOrder[other_i] = tmp;
     }
 
     // Benchmarking starts:
@@ -126,8 +128,10 @@ double _benchmarkRandomRead(size_t opSize, char *fileName) {
         bytesReadOrder[i] = i;
 
     for (size_t i = 0; i < opSize; i++) {
-        int other_i = rand() % opSize;
-        swap(&bytesReadOrder[i], &bytesReadOrder[other_i]);
+        size_t other_i = rand() % opSize;
+        size_t tmp = bytesReadOrder[i];
+        bytesReadOrder[i] = bytesReadOrder[other_i];
+        bytesReadOrder[other_i] = tmp;
     }
 
     // Benchmarking starts:
