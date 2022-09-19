@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -15,6 +16,8 @@ int main() {
     mkfifo("testFifo", 0777);
 
     int fd = open("testFifo", O_WRONLY);
+
+    srand(time(NULL));
 
     for (size_t i = 0; i < 5; i++) {
         arr[i] = rand() % 100;
